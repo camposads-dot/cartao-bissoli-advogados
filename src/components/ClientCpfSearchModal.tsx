@@ -68,7 +68,12 @@ export const ClientCpfSearchModal: React.FC<ClientCpfSearchModalProps> = ({
       )
     : [];
 
+  const cuponsDisponiveis = clientCupons.filter((c) => c.status === 'Disponivel');
+  const cuponsUtilizados = clientCupons.filter((c) => c.status === 'Utilizado');
+
   const valorTotalCupons = clientCupons.reduce((acc, c) => acc + c.valor, 0);
+  const valorTotalDisponivel = cuponsDisponiveis.reduce((acc, c) => acc + c.valor, 0);
+  const valorTotalAbatido = cuponsUtilizados.reduce((acc, c) => acc + (c.valorAbatido || c.valor), 0);
 
   const getStatusBadge = (status: StatusIndicacao) => {
     switch (status) {
@@ -230,15 +235,25 @@ export const ClientCpfSearchModal: React.FC<ClientCpfSearchModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 text-xs">
                   <div className="text-center px-2">
                     <p className="text-[10px] uppercase font-bold text-slate-400">Indicações</p>
-                    <p className="text-xl font-bold text-white">{clientIndicacoes.length}</p>
+                    <p className="text-lg font-bold text-white">{clientIndicacoes.length}</p>
                   </div>
-                  <div className="h-8 border-l border-slate-700" />
+                  <div className="h-8 border-l border-slate-700 hidden sm:block" />
                   <div className="text-center px-2">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Total Cupons</p>
-                    <p className="text-xl font-bold text-amber-400">R$ {valorTotalCupons.toFixed(2)}</p>
+                    <p className="text-[10px] uppercase font-bold text-slate-400">Total Gerado</p>
+                    <p className="text-lg font-bold text-amber-400">R$ {valorTotalCupons.toFixed(2)}</p>
+                  </div>
+                  <div className="h-8 border-l border-slate-700 hidden sm:block" />
+                  <div className="text-center px-2">
+                    <p className="text-[10px] uppercase font-bold text-emerald-400">Disponível</p>
+                    <p className="text-lg font-bold text-emerald-400">R$ {valorTotalDisponivel.toFixed(2)}</p>
+                  </div>
+                  <div className="h-8 border-l border-slate-700 hidden sm:block" />
+                  <div className="text-center px-2">
+                    <p className="text-[10px] uppercase font-bold text-indigo-300">Abatidos</p>
+                    <p className="text-lg font-bold text-indigo-300">R$ {valorTotalAbatido.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
@@ -291,9 +306,16 @@ export const ClientCpfSearchModal: React.FC<ClientCpfSearchModalProps> = ({
 
               {/* COUPONS LIST */}
               <div className="space-y-3 pt-2">
-                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <Gift className="w-4 h-4 text-amber-500" />
-                  <span>Cupons e Recompensas ({clientCupons.length})</span>
+                <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-amber-500" />
+                    Histórico de Cupons e Recompensas ({clientCupons.length})
+                  </span>
+                  {cuponsUtilizados.length > 0 && (
+                    <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      {cuponsUtilizados.length} {cuponsUtilizados.length === 1 ? 'cupom abatido' : 'cupons abatidos'}
+                    </span>
+                  )}
                 </h4>
 
                 {clientCupons.length === 0 ? (
@@ -305,30 +327,77 @@ export const ClientCpfSearchModal: React.FC<ClientCpfSearchModalProps> = ({
                     {clientCupons.map((cup) => (
                       <div
                         key={cup.id}
-                        className="p-4 rounded-2xl bg-amber-500/5 dark:bg-amber-950/20 border border-amber-300/40 dark:border-amber-500/30 flex items-center justify-between"
+                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                          cup.status === 'Disponivel'
+                            ? 'bg-amber-500/5 dark:bg-amber-950/20 border-amber-300/40 dark:border-amber-500/30'
+                            : 'bg-emerald-500/5 dark:bg-emerald-950/20 border-emerald-400/40 dark:border-emerald-500/30'
+                        }`}
                       >
-                        <div>
-                          <p className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
-                            {cup.codigo}
-                          </p>
-                          <p className="text-lg font-extrabold text-slate-900 dark:text-white">
-                            R$ {cup.valor.toFixed(2)}
-                          </p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">
-                            Indicado: {cup.nomeIndicado}
-                          </p>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="text-[11px] font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-400/30">
+                              {cup.codigo}
+                            </span>
+                            <p className="text-xl font-extrabold text-slate-900 dark:text-white mt-1.5">
+                              R$ {cup.valor.toFixed(2)}
+                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              Indicado: <strong>{cup.nomeIndicado || 'Indicação vinculada'}</strong>
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Gerado em {new Date(cup.dataGeracao).toLocaleDateString('pt-BR')} por {cup.responsavelValidacaoNome || 'Equipe'}
+                            </p>
+                          </div>
+
+                          <div>
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1 ${
+                                cup.status === 'Disponivel'
+                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300'
+                                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300'
+                              }`}
+                            >
+                              {cup.status === 'Disponivel' ? (
+                                <>
+                                  <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                                  <span>Disponível</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                  <span>Abatido</span>
+                                </>
+                              )}
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                              cup.status === 'Disponivel'
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300'
-                                : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                            }`}
-                          >
-                            {cup.status === 'Disponivel' ? 'Disponível' : 'Utilizado'}
-                          </span>
-                        </div>
+
+                        {/* DETALHES DO ABATE DO CUPOM QUANDO STATUS FOR UTILIZADO */}
+                        {cup.status === 'Utilizado' && (
+                          <div className="pt-2.5 border-t border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl text-xs space-y-1">
+                            <div className="flex items-center justify-between font-bold text-emerald-800 dark:text-emerald-300">
+                              <span className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                Abatido: R$ {(cup.valorAbatido || cup.valor).toFixed(2)}
+                              </span>
+                              {cup.dataUso && (
+                                <span className="text-[10px] font-normal text-slate-500 dark:text-slate-400">
+                                  Data: {new Date(cup.dataUso).toLocaleDateString('pt-BR')}
+                                </span>
+                              )}
+                            </div>
+                            {cup.responsavelAbateNome && (
+                              <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                                Responsável pelo Abate: <strong>{cup.responsavelAbateNome}</strong>
+                              </p>
+                            )}
+                            {cup.observacaoAbate && (
+                              <p className="text-[11px] text-slate-600 dark:text-slate-300 italic pt-0.5">
+                                Obs: "{cup.observacaoAbate}"
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
