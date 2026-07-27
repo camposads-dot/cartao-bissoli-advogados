@@ -98,8 +98,12 @@ export const ClientPortal: React.FC = () => {
     }
 
     setLoginError('');
-    auth.loginCliente(nomeInput, cpfInput);
-    auth.refreshData();
+    const res = auth.loginCliente(nomeInput, cpfInput);
+    if (!res.success) {
+      setLoginError(res.message || 'Erro ao realizar login com o CPF informado.');
+    } else {
+      auth.refreshData();
+    }
   };
 
   const handleCreateIndicacao = (e: React.FormEvent) => {

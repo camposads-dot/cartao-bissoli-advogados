@@ -161,7 +161,12 @@ export const apiStore = {
   saveCliente: (cliente: Omit<Cliente, 'id' | 'criadoEm'>): Cliente => {
     const clientes = apiStore.getClientes();
     const existing = clientes.find((c) => c.cpf.replace(/\D/g, '') === cliente.cpf.replace(/\D/g, ''));
-    if (existing) return existing;
+    if (existing) {
+      if (existing.nome.trim().toLowerCase() === cliente.nome.trim().toLowerCase()) {
+        return existing;
+      }
+      throw new Error(`O CPF ${cliente.cpf} já está associado ao cliente "${existing.nome}". Por favor, utilize o nome correto cadastrado para este CPF.`);
+    }
 
     const newCliente: Cliente = {
       ...cliente,

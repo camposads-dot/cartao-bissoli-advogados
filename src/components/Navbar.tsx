@@ -164,8 +164,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
             </div>
           </div>
 
-          {/* SEARCH CLIENT BY CPF BUTTON */}
-          <div className="hidden lg:flex items-center space-x-2">
+          {/* SEARCH CLIENT BY CPF BUTTON & LOGGED-IN STAFF BADGE */}
+          <div className="hidden lg:flex items-center space-x-3">
             <button
               onClick={onOpenSearchCpf}
               className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 dark:hover:bg-amber-500/30 border border-amber-400/40 transition-colors cursor-pointer"
@@ -173,6 +173,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
               <UserCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>Pesquisar Cliente por CPF</span>
             </button>
+
+            {auth.staffActive && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                <div className="text-left leading-tight">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block truncate max-w-[150px]">
+                    {auth.staffActive.nome}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block truncate max-w-[150px]">
+                    {auth.staffActive.email}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT ACTIONS: QUICK ROLE SWITCHER, REPORTS, THEME TOGGLE, LOGOUT */}

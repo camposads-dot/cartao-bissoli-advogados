@@ -7,7 +7,7 @@ interface AuthContextType {
   setPortalType: (type: 'cliente' | 'interno') => void;
   clienteActive: Cliente | null;
   staffActive: UsuarioInterno | null;
-  loginCliente: (nome: string, cpf: string) => Cliente;
+  loginCliente: (nome: string, cpf: string) => { success: boolean; cliente?: Cliente; message?: string };
   logoutCliente: () => void;
   loginStaffByEmail: (email: string) => UsuarioInterno | null;
   loginStaffWithCredentials: (email: string, password?: string) => { success: boolean; user?: UsuarioInterno; message?: string };
@@ -53,22 +53,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [staffActive]);
 
-  const loginCliente = (nome: string, cpfRaw: string): Cliente => {
+  const loginCliente = (
+    nome: string,
+    cpfRaw: string
+  ): { success: boolean; cliente?: Cliente; message?: string } => {
     const cpfClean = cpfRaw.replace(/\D/g, '');
     const formattedCpf =
       cpfClean.length === 11
         ? `${cpfClean.slice(0, 3)}.${cpfClean.slice(3, 6)}.${cpfClean.slice(6, 9)}-${cpfClean.slice(9)}`
         : cpfRaw;
 
-    const cliente = apiStore.saveCliente({
-      nome: nome.trim() || 'Cliente Não Identificado',
-      cpf: formattedCpf,
-      telefone: '(00) 00000-0000',
-    });
+    const trimmedNome = nome.trim() || 'Cliente Não Identificado';
 
-    setClienteActive(cliente);
-    setPortalType('cliente');
-    return cliente;
+    try {
+      const cliente = apiStore.saveCliente({
+        nome: trimmedNome,
+        cpf: formattedCpf,
+        telefone: '(00) 00000-0000',
+      });
+
+      setClienteActive(cliente);
+      setPortalType('cliente');
+      return { success: true, cliente };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err.message || 'Erro ao realizar acesso com o CPF informado.',
+      };
+    }
   };
 
   const logoutCliente = () => {
