@@ -24,10 +24,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [staffActive, setStaffActive] = useState<UsuarioInterno | null>(() => {
     const saved = localStorage.getItem('indica_active_staff');
-    if (saved) return JSON.parse(saved);
-    // Default to Comercial (Natan Campos) for fast testing
-    const usuarios = apiStore.getUsuarios();
-    return usuarios.find((u) => u.perfil === 'comercial') || usuarios[0] || null;
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
   });
 
   const [, setTick] = useState(0);
@@ -120,6 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutStaff = () => {
     setStaffActive(null);
+    localStorage.removeItem('indica_active_staff');
   };
 
   return (
