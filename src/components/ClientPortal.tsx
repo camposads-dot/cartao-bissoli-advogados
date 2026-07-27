@@ -4,6 +4,7 @@ import { apiStore } from '../lib/supabase';
 import officeImg from '../assets/images/office_building_1785179140211.jpg';
 import {
   User,
+  Users,
   PlusCircle,
   Gift,
   CheckCircle2,
@@ -67,6 +68,7 @@ export const ClientPortal: React.FC = () => {
     (i) => i.status === 'Contrato Fechado' || i.status === 'Cupom Gerado' || i.status === 'Cupom Utilizado'
   ).length;
 
+  const valorTotalArrecadado = clienteCupons.reduce((sum, c) => sum + c.valor, 0);
   const cuponsDisponiveis = clienteCupons.filter((c) => c.status === 'Disponivel');
   const valorAcumuladoDisponivel = cuponsDisponiveis.reduce((sum, c) => sum + c.valor, 0);
 
@@ -182,24 +184,45 @@ export const ClientPortal: React.FC = () => {
   // IF NO CLIENT LOGGED IN -> EXCLUSIVE INSTITUTIONAL LANDING & LOGIN SCREEN
   if (!auth.clienteActive) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-3 sm:p-8 relative overflow-hidden w-full max-w-full">
         {/* BACKGROUND DECORATIVE GLOWS */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
         <div className="absolute bottom-0 right-0 w-[500px] h-[300px] bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
 
         {/* TOP BRAND HEADER */}
         <div className="max-w-4xl mx-auto w-full text-center pt-2 sm:pt-6 pb-2 relative z-10">
-          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0F285F] border border-amber-400/40 shadow-xl shadow-amber-500/10 mb-3">
-            <Scale className="w-8 h-8 text-amber-400" />
+          {/* OFFICE LOGO IMAGE */}
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-[#0B192C]/80 rounded-2xl border border-amber-400/40 shadow-2xl shadow-amber-500/10 backdrop-blur-md inline-block">
+              <img
+                src="https://i.ibb.co/hxkKFSXL/logo.png"
+                alt="Bissoli & Bissoli Advogados Associados"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.triedJpg) {
+                    target.dataset.triedJpg = 'true';
+                    target.src = 'https://i.ibb.co/hxkKFSXL/logo.jpg';
+                  } else if (!target.dataset.triedWebp) {
+                    target.dataset.triedWebp = 'true';
+                    target.src = 'https://i.ibb.co/hxkKFSXL/logo.webp';
+                  } else if (!target.dataset.triedImg) {
+                    target.dataset.triedImg = 'true';
+                    target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
+                  }
+                }}
+                className="h-16 sm:h-20 w-auto object-contain mx-auto rounded-lg max-w-[280px]"
+              />
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">
             Bissoli & Bissoli Advogados Associados
           </h1>
           <p className="text-xs sm:text-sm font-bold text-amber-400 tracking-wide uppercase">
             Bem-vindo ao Portal do Cliente
           </p>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-2">
+          <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-2 px-2">
             Acesse sua área exclusiva para acompanhar e realizar indicações de forma simples, transparente e segura.
           </p>
         </div>
@@ -216,16 +239,32 @@ export const ClientPortal: React.FC = () => {
             <Scale className="absolute -right-6 -bottom-6 w-36 h-36 text-amber-400/5 pointer-events-none" />
 
             {/* CARD TOP ROW */}
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center space-x-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-400/20 border border-amber-400/50 flex items-center justify-center">
-                  <Scale className="w-4 h-4 text-amber-300" />
-                </div>
-                <span className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase">
+            <div className="flex items-center justify-between mb-5 gap-2">
+              <div className="flex items-center space-x-2 min-w-0">
+                <img
+                  src="https://i.ibb.co/hxkKFSXL/logo.png"
+                  alt="Logo"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.dataset.triedJpg) {
+                      target.dataset.triedJpg = 'true';
+                      target.src = 'https://i.ibb.co/hxkKFSXL/logo.jpg';
+                    } else if (!target.dataset.triedWebp) {
+                      target.dataset.triedWebp = 'true';
+                      target.src = 'https://i.ibb.co/hxkKFSXL/logo.webp';
+                    } else if (!target.dataset.triedImg) {
+                      target.dataset.triedImg = 'true';
+                      target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
+                    }
+                  }}
+                  className="h-7 w-auto object-contain bg-amber-400/10 p-0.5 rounded border border-amber-400/40 shrink-0"
+                />
+                <span className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase truncate">
                   Bissoli & Bissoli
                 </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
                 Cartão do Cliente
               </span>
             </div>
@@ -256,20 +295,17 @@ export const ClientPortal: React.FC = () => {
                   Acesso Preferencial
                 </p>
                 <p className="text-xs font-bold text-white tracking-wide">
-                  Programa Oficial de Indicações
+                  Área Oficial do Cliente Bissoli & Bissoli
                 </p>
               </div>
-              <p className="text-[10px] font-bold text-amber-300 tracking-widest uppercase">
-                VIP ACCESS
-              </p>
             </div>
           </div>
 
           {/* ACCESS CARD FORM */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
             <div className="mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Acesso ao Programa de Indicações
+                Acesso à Área do cliente
               </h2>
               <p className="text-xs text-slate-600 mt-2 leading-relaxed">
                 Informe seu Nome e CPF para acessar sua área de indicações. Caso seja seu primeiro acesso, seu cadastro será criado automaticamente.
@@ -327,7 +363,7 @@ export const ClientPortal: React.FC = () => {
               </button>
             </form>
 
-            {/* SECONDARY ACTION: ACESSAR COMO COLABORADOR */}
+            {/* SECONDARY ACTION: COLLABORATOR LOGIN */}
             <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col space-y-2.5">
               <button
                 type="button"
@@ -338,21 +374,7 @@ export const ClientPortal: React.FC = () => {
                 className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                <span>Acessar como Colaborador</span>
-              </button>
-
-              {/* DEMO CLIENT FAST ACCESS */}
-              <button
-                type="button"
-                onClick={() => {
-                  setNomeInput('João Pedro da Silva');
-                  setCpfInput('123.456.789-00');
-                  auth.loginCliente('João Pedro da Silva', '123.456.789-00');
-                  auth.refreshData();
-                }}
-                className="text-[11px] text-slate-400 hover:text-indigo-600 text-center transition-colors pt-1"
-              >
-                Entrar direto como Cliente Demonstrativo (João Pedro)
+                <span>Acessar como colaborador</span>
               </button>
             </div>
           </div>
@@ -360,33 +382,44 @@ export const ClientPortal: React.FC = () => {
 
         {/* PARTE INFERIOR: CARD INSTITUCIONAL DO ESCRITÓRIO */}
         <div className="max-w-2xl mx-auto w-full pt-4 pb-2 relative z-10">
-          <div className="bg-[#0B192C]/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-5 shadow-2xl text-xs text-slate-300 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+          <div className="bg-[#0B192C]/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-4 sm:p-5 shadow-2xl text-xs text-slate-300 flex flex-col sm:flex-row items-center sm:items-start gap-4">
             <img
-              src={officeImg}
+              src="https://i.ibb.co/8g86BQ1f/office.jpg"
               alt="Bissoli & Bissoli Advogados"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.dataset.triedPng) {
+                  target.dataset.triedPng = 'true';
+                  target.src = 'https://i.ibb.co/8g86BQ1f/office.png';
+                } else if (!target.dataset.triedFallback) {
+                  target.dataset.triedFallback = 'true';
+                  target.src = officeImg;
+                }
+              }}
               className="w-full sm:w-36 h-28 object-cover rounded-xl border border-amber-400/30 shrink-0"
             />
-            <div className="space-y-2 text-center sm:text-left">
+            <div className="space-y-2 text-center sm:text-left min-w-0">
               <h3 className="font-bold text-sm text-white flex items-center justify-center sm:justify-start gap-1.5">
-                <Building2 className="w-4 h-4 text-amber-400" />
-                Bissoli & Bissoli Advogados Associados
+                <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Bissoli & Bissoli Advogados Associados</span>
               </h3>
               <p className="text-slate-300 leading-relaxed text-[11px]">
-                Nosso escritório atua em todo o Brasil oferecendo atendimento jurídico especializado e um programa de indicações transparente para nossos clientes.
+                Nosso escritório atua oferecendo atendimento jurídico especializado e um programa de indicações transparente para nossos clientes.
               </p>
               <div className="pt-2 border-t border-slate-700/60 space-y-1 text-[10px] text-slate-400">
-                <p className="flex items-center justify-center sm:justify-start gap-1">
+                <p className="flex items-center justify-center sm:justify-start gap-1 text-center sm:text-left">
                   <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
-                  <span>Av. Paulista, 1000 - Bela Vista, São Paulo/SP • Atendimento Nacional</span>
+                  <span className="break-words">Tv. Marajoara, 3796 - St. 02, Ariquemes - RO, 76873-242</span>
                 </p>
-                <p className="flex items-center justify-center sm:justify-start gap-3">
+                <p className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3">
                   <span className="flex items-center gap-1">
                     <Phone className="w-3 h-3 text-amber-400 shrink-0" />
-                    (11) 3000-0000
+                    (69) 99944-6100
                   </span>
                   <span className="flex items-center gap-1">
                     <Mail className="w-3 h-3 text-amber-400 shrink-0" />
-                    contato@bissoliebissoli.adv.br
+                    advogados.eb@gmail.com
                   </span>
                 </p>
               </div>
@@ -398,27 +431,27 @@ export const ClientPortal: React.FC = () => {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
       {/* WELCOME HEADER */}
-      <div className="bg-[#0F172A] rounded-2xl p-6 sm:p-8 text-white shadow-xs relative overflow-hidden border border-slate-800">
+      <div className="bg-[#0F172A] rounded-2xl p-5 sm:p-8 text-white shadow-xs relative overflow-hidden border border-slate-800">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
           <div>
             <div className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold uppercase tracking-wider text-indigo-300 border border-slate-700 mb-2">
               <Sparkles className="w-3 h-3 mr-1 text-indigo-400" />
               Área Exclusiva do Cliente
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
               Olá, {auth.clienteActive.nome}!
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              CPF: <span className="font-mono">{auth.clienteActive.cpf}</span> | Acompanhe suas indicações e seus cupons acumulados.
+              CPF: <span className="font-mono">{auth.clienteActive.cpf}</span> | Acompanhe suas indicações e cupons.
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <button
               onClick={() => setShowNewModal(true)}
-              className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all flex items-center space-x-2"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-all flex items-center justify-center space-x-2"
             >
               <PlusCircle className="w-4 h-4 text-white" />
               <span>Nova Indicação</span>
@@ -435,37 +468,40 @@ export const ClientPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* METRICS CARDS GRID */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Indicações</p>
-          <p className="text-2xl font-light text-slate-900 dark:text-white">{countTotal}</p>
+      {/* METRICS CARDS GRID (Apenas Indicados Validados e Valor Arrecadado) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+              Indicados Validados
+            </p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+              {countTotal}
+            </p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              {countTotal === 1 ? '1 indicação cadastrada' : `${countTotal} indicações cadastradas`}
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+          </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Em Atendimento</p>
-          <p className="text-2xl font-light text-blue-600 dark:text-blue-400">{countAtendimento}</p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Qualificadas</p>
-          <p className="text-2xl font-light text-indigo-600 dark:text-indigo-400">{countQualificadas}</p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Desqualificadas</p>
-          <p className="text-2xl font-light text-rose-600 dark:text-rose-400">{countDesqualificadas}</p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Contratos Fechados</p>
-          <p className="text-2xl font-light text-emerald-600 dark:text-emerald-400">{countContratos}</p>
-        </div>
-
-        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-xs col-span-2 sm:col-span-1">
-          <p className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider mb-1">Saldo Cupons</p>
-          <p className="text-2xl font-light">R$ {valorAcumuladoDisponivel.toFixed(2)}</p>
-          <p className="text-[10px] text-indigo-300 mt-0.5">{cuponsDisponiveis.length} cupom(ns) ativo(s)</p>
+        <div className="bg-gradient-to-br from-indigo-900 via-[#1E3A8A] to-[#0F285F] text-white p-5 rounded-2xl shadow-md border border-amber-400/30 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-1">
+              Valor Arrecadado
+            </p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-white">
+              R$ {valorTotalArrecadado.toFixed(2)}
+            </p>
+            <p className="text-xs text-indigo-200 mt-1">
+              {clienteCupons.length} cupom(ns) acumulado(s) em recompensas
+            </p>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center shrink-0">
+            <Gift className="w-6 h-6 text-amber-300" />
+          </div>
         </div>
       </div>
 
@@ -588,7 +624,7 @@ export const ClientPortal: React.FC = () => {
                         <h4 className="text-base font-bold text-slate-900 dark:text-white">
                           {ind.nomeIndicado}
                         </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-3 mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
                           <span>CPF: {ind.cpfIndicado}</span>
                           <span>Tel: {ind.telefoneIndicado}</span>
                         </p>

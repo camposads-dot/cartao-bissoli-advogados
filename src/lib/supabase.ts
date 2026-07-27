@@ -57,187 +57,64 @@ const defaultUsuarios: UsuarioInterno[] = [
   { id: 'u4', nome: 'Dra. Cristiane', email: 'dra.cristiane@escritorio.adv.br', perfil: 'gestao', ativo: true, criadoEm: new Date().toISOString() },
 ];
 
-const defaultClientes: Cliente[] = [
-  {
-    id: 'c1',
-    nome: 'João Pedro da Silva',
-    cpf: '123.456.789-00',
-    telefone: '(11) 98765-4321',
-    criadoEm: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'c2',
-    nome: 'Maria Fernandes Oliveira',
-    cpf: '987.654.321-11',
-    telefone: '(21) 99876-5432',
-    criadoEm: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'c3',
-    nome: 'Carlos Eduardo Souza',
-    cpf: '456.789.123-22',
-    telefone: '(31) 97654-3210',
-    criadoEm: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+const defaultClientes: Cliente[] = [];
 
-const defaultIndicacoes: Indicacao[] = [
-  {
-    id: 'i1',
-    clienteId: 'c1',
-    clienteNome: 'João Pedro da Silva',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Lucas Mendes',
-    cpfIndicado: '111.222.333-44',
-    telefoneIndicado: '(11) 91234-5678',
-    tipoAcaoId: '2',
-    tipoAcaoNome: 'Trabalhista',
-    observacoes: 'Ação de horas extras e insalubridade.',
-    status: 'Contrato Fechado',
-    criadoEm: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    atualizadoEm: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    historico: [
-      {
-        id: 'h1',
-        indicacaoId: 'i1',
-        statusAnterior: null,
-        statusNovo: 'Recebida',
-        responsavelNome: 'João Pedro da Silva',
-        observacao: 'Indicação cadastrada pelo cliente.',
-        criadoEm: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'h2',
-        indicacaoId: 'i1',
-        statusAnterior: 'Recebida',
-        statusNovo: 'Em Atendimento',
-        responsavelNome: 'Natan Campos',
-        observacao: 'Primeira reunião de alinhamento realizada com o indicado.',
-        criadoEm: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'h3',
-        indicacaoId: 'i1',
-        statusAnterior: 'Em Atendimento',
-        statusNovo: 'Contrato Fechado',
-        responsavelNome: 'Natan Campos',
-        observacao: 'Contrato assinado e documentação validada.',
-        criadoEm: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-  },
-  {
-    id: 'i2',
-    clienteId: 'c1',
-    clienteNome: 'João Pedro da Silva',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Ana Beatris Costa',
-    cpfIndicado: '222.333.444-55',
-    telefoneIndicado: '(11) 92345-6789',
-    tipoAcaoId: '1',
-    tipoAcaoNome: 'Previdenciário',
-    observacoes: 'Pedido de aposentadoria por tempo de contribuição.',
-    status: 'Em Atendimento',
-    criadoEm: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    atualizadoEm: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    historico: [
-      {
-        id: 'h4',
-        indicacaoId: 'i2',
-        statusAnterior: null,
-        statusNovo: 'Recebida',
-        responsavelNome: 'João Pedro da Silva',
-        observacao: 'Indicação enviada pelo portal.',
-        criadoEm: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: 'h5',
-        indicacaoId: 'i2',
-        statusAnterior: 'Recebida',
-        statusNovo: 'Em Atendimento',
-        responsavelNome: 'Natan Campos',
-        observacao: 'Contato inicial realizado.',
-        criadoEm: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ],
-  },
-  {
-    id: 'i3',
-    clienteId: 'c2',
-    clienteNome: 'Maria Fernandes Oliveira',
-    clienteCpf: '987.654.321-11',
-    nomeIndicado: 'Roberto Alves',
-    cpfIndicado: '333.444.555-66',
-    telefoneIndicado: '(21) 93456-7890',
-    tipoAcaoId: '3',
-    tipoAcaoNome: 'Consumidor',
-    observacoes: 'Problema com cobrança indevida bancária.',
-    status: 'Qualificada',
-    criadoEm: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    atualizadoEm: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    historico: [],
-  },
-  {
-    id: 'i4',
-    clienteId: 'c3',
-    clienteNome: 'Carlos Eduardo Souza',
-    clienteCpf: '456.789.123-22',
-    nomeIndicado: 'Patrícia Lima',
-    cpfIndicado: '444.555.666-77',
-    telefoneIndicado: '(31) 94567-8901',
-    tipoAcaoId: '4',
-    tipoAcaoNome: 'Família',
-    observacoes: 'Inventário e divisão de bens.',
-    status: 'Desqualificada',
-    criadoEm: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-    atualizadoEm: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    historico: [],
-  },
-];
+const defaultIndicacoes: Indicacao[] = [];
 
-const defaultCupons: Cupom[] = [
-  {
-    id: 'cup1',
-    codigo: 'CUP-7A2B9X',
-    indicacaoId: 'i1',
-    clienteId: 'c1',
-    clienteNome: 'João Pedro da Silva',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Lucas Mendes',
-    valor: 500,
-    status: 'Disponivel',
-    dataGeracao: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    responsavelValidacaoNome: 'Natan Campos',
-  },
-];
+const defaultCupons: Cupom[] = [];
 
-const defaultLogs: LogSistema[] = [
-  {
-    id: 'l1',
-    usuarioNome: 'Natan Campos',
-    acao: 'Validação de Contrato e Geração de Cupom',
-    detalhes: 'Contrato da indicação Lucas Mendes fechado e cupom CUP-7A2B9X gerado.',
-    criadoEm: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+const defaultLogs: LogSistema[] = [];
 
 const defaultConfig: ConfiguracaoSistema = {
   valorPadraoCupom: 500,
-  nomeEscritorio: 'Advocacia Cristiane & Associados',
+  nomeEscritorio: 'Bissoli & Bissoli Advogados',
   permitirAutoCadastroCliente: true,
 };
 
 // INITIALIZE LOCAL STORAGE IF EMPTY
 export function initLocalStore() {
-  if (!localStorage.getItem(STORAGE_KEYS.CLIENTES)) {
+  // Clear legacy mock seed data if present in localStorage
+  const mockClientIds = ['c1', 'c2', 'c3'];
+  const mockIndIds = ['i1', 'i2', 'i3', 'i4'];
+  const mockCupIds = ['cup1'];
+  const mockLogIds = ['l1'];
+
+  const rawClientes = localStorage.getItem(STORAGE_KEYS.CLIENTES);
+  if (rawClientes) {
+    const clients: Cliente[] = JSON.parse(rawClientes);
+    const cleaned = clients.filter((c) => !mockClientIds.includes(c.id));
+    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(cleaned));
+  } else {
     localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(defaultClientes));
   }
-  if (!localStorage.getItem(STORAGE_KEYS.INDICACOES)) {
+
+  const rawInds = localStorage.getItem(STORAGE_KEYS.INDICACOES);
+  if (rawInds) {
+    const inds: Indicacao[] = JSON.parse(rawInds);
+    const cleaned = inds.filter((i) => !mockIndIds.includes(i.id));
+    localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify(cleaned));
+  } else {
     localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify(defaultIndicacoes));
   }
-  if (!localStorage.getItem(STORAGE_KEYS.CUPONS)) {
+
+  const rawCups = localStorage.getItem(STORAGE_KEYS.CUPONS);
+  if (rawCups) {
+    const cups: Cupom[] = JSON.parse(rawCups);
+    const cleaned = cups.filter((c) => !mockCupIds.includes(c.id));
+    localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify(cleaned));
+  } else {
     localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify(defaultCupons));
   }
+
+  const rawLogs = localStorage.getItem(STORAGE_KEYS.LOGS);
+  if (rawLogs) {
+    const logs: LogSistema[] = JSON.parse(rawLogs);
+    const cleaned = logs.filter((l) => !mockLogIds.includes(l.id));
+    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(cleaned));
+  } else {
+    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(defaultLogs));
+  }
+
   if (!localStorage.getItem(STORAGE_KEYS.USUARIOS)) {
     localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(defaultUsuarios));
   } else {
@@ -261,9 +138,6 @@ export function initLocalStore() {
   }
   if (!localStorage.getItem(STORAGE_KEYS.TIPOS_ACAO)) {
     localStorage.setItem(STORAGE_KEYS.TIPOS_ACAO, JSON.stringify(defaultTiposAcao));
-  }
-  if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
-    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(defaultLogs));
   }
   if (!localStorage.getItem(STORAGE_KEYS.CONFIG)) {
     localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(defaultConfig));

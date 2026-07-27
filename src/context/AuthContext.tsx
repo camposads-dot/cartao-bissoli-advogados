@@ -10,6 +10,7 @@ interface AuthContextType {
   loginCliente: (nome: string, cpf: string) => Cliente;
   logoutCliente: () => void;
   loginStaffByEmail: (email: string) => UsuarioInterno | null;
+  loginStaffWithCredentials: (email: string, password?: string) => { success: boolean; user?: UsuarioInterno; message?: string };
   switchStaffRole: (perfil: PerfilCodigo) => void;
   logoutStaff: () => void;
   refreshData: () => void;
@@ -19,10 +20,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [portalType, setPortalType] = useState<'cliente' | 'interno'>('cliente');
-  const [clienteActive, setClienteActive] = useState<Cliente | null>(() => {
-    const saved = localStorage.getItem('indica_active_cliente');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [clienteActive, setClienteActive] = useState<Cliente | null>(null);
 
   const [staffActive, setStaffActive] = useState<UsuarioInterno | null>(() => {
     const saved = localStorage.getItem('indica_active_staff');
@@ -71,6 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutCliente = () => {
     setClienteActive(null);
+    setPortalType('cliente');
+    localStorage.removeItem('indica_active_cliente');
   };
 
   const loginStaffByEmail = (email: string): UsuarioInterno | null => {
@@ -82,6 +82,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return user;
     }
     return null;
+  };
+
+  const loginStaffWithCredentials = (
+    email: string,
+    password?: string
+  ): { success: boolean; user?: UsuarioInterno; message?: string } => {
+    const usuarios = apiStore.getUsuarios();
+    const cleanEmail = email.trim().toLowerCase();
+    const user = usuarios.find((u) => u.email.toLowerCase() === cleanEmail && u.ativo);
+
+    if (!user) {
+      return { success: false, message: 'E-mail não cadastrado ou conta inativa.' };
+    }
+
+    if (user.senha && password !== undefined) {
+      if (user.senha !== password.trim()) {
+        return { success: false, message: 'Senha de acesso incorreta.' };
+      }
+    }
+
+    setStaffActive(user);
+    setPortalType('interno');
+    return { success: true, user };
   };
 
   const switchStaffRole = (perfil: PerfilCodigo) => {
@@ -109,6 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginCliente,
         logoutCliente,
         loginStaffByEmail,
+        loginStaffWithCredentials,
         switchStaffRole,
         logoutStaff,
         refreshData,

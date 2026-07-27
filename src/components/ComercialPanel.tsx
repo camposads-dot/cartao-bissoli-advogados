@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiStore } from '../lib/supabase';
+import { ClientCpfSearchModal } from './ClientCpfSearchModal';
 import {
   Search,
   Filter,
@@ -14,12 +15,16 @@ import {
   AlertCircle,
   Gift,
   FileCheck2,
+  UserCheck,
 } from 'lucide-react';
 import { Indicacao, StatusIndicacao } from '../types';
 
 export const ComercialPanel: React.FC = () => {
   const auth = useAuth();
   const gestorNome = auth.staffActive?.nome || 'Natan Campos';
+
+  // CPF SEARCH MODAL STATE
+  const [cpfModalOpen, setCpfModalOpen] = useState(false);
 
   // SEARCH AND FILTERS
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,17 +150,27 @@ export const ComercialPanel: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Indicações:</span>
-            <strong className="text-slate-900 dark:text-white text-base font-light">{allIndicacoes.length}</strong>
-          </div>
-          <div className="border-l border-slate-200 dark:border-slate-700 h-8"></div>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Contratos Fechados:</span>
-            <strong className="text-emerald-600 dark:text-emerald-400 text-base font-light">
-              {allIndicacoes.filter((i) => i.status === 'Contrato Fechado' || i.status === 'Cupom Gerado' || i.status === 'Cupom Utilizado').length}
-            </strong>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => setCpfModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs flex items-center space-x-2 shadow-md transition-all cursor-pointer"
+          >
+            <UserCheck className="w-4 h-4 text-slate-950" />
+            <span>Pesquisar Cliente por CPF</span>
+          </button>
+
+          <div className="flex items-center space-x-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Indicações:</span>
+              <strong className="text-slate-900 dark:text-white text-base font-light">{allIndicacoes.length}</strong>
+            </div>
+            <div className="border-l border-slate-200 dark:border-slate-700 h-8"></div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Contratos Fechados:</span>
+              <strong className="text-emerald-600 dark:text-emerald-400 text-base font-light">
+                {allIndicacoes.filter((i) => i.status === 'Contrato Fechado' || i.status === 'Cupom Gerado' || i.status === 'Cupom Utilizado').length}
+              </strong>
+            </div>
           </div>
         </div>
       </div>
@@ -428,6 +443,8 @@ export const ComercialPanel: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ClientCpfSearchModal isOpen={cpfModalOpen} onClose={() => setCpfModalOpen(false)} />
     </div>
   );
 };
