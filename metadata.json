@@ -1,0 +1,6 @@
+{
+  "name": "Sistema de Indicações - Direito & CRM",
+  "description": "Sistema completo de gerenciamento de indicações, cupons de recompensa e métricas comerciais para escritório de advocacia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
