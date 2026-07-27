@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiStore } from '../lib/supabase';
+import officeImg from '../assets/images/office_building_1785179140211.jpg';
 import {
   User,
   PlusCircle,
@@ -17,6 +18,12 @@ import {
   ChevronRight,
   ShieldAlert,
   Search,
+  Scale,
+  QrCode,
+  Building2,
+  MapPin,
+  Mail,
+  ShieldCheck,
 } from 'lucide-react';
 import { Indicacao, StatusIndicacao } from '../types';
 
@@ -172,96 +179,217 @@ export const ClientPortal: React.FC = () => {
     }
   };
 
-  // IF NO CLIENT LOGGED IN -> SHOW LOGIN / QUICK IDENTIFICATION SCREEN
+  // IF NO CLIENT LOGGED IN -> EXCLUSIVE INSTITUTIONAL LANDING & LOGIN SCREEN
   if (!auth.clienteActive) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 transition-colors">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-tr from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg shadow-amber-500/20">
-              <User className="w-8 h-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Portal de Indicações</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Acesso simples e direto sem necessidade de senha.
-            </p>
+      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-4 sm:p-8 relative overflow-hidden">
+        {/* BACKGROUND DECORATIVE GLOWS */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[300px] bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
+
+        {/* TOP BRAND HEADER */}
+        <div className="max-w-4xl mx-auto w-full text-center pt-2 sm:pt-6 pb-2 relative z-10">
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-br from-[#1E3A8A] to-[#0F285F] border border-amber-400/40 shadow-xl shadow-amber-500/10 mb-3">
+            <Scale className="w-8 h-8 text-amber-400" />
           </div>
 
-          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3.5 mb-6 text-xs text-amber-800 dark:text-amber-300 flex items-start space-x-2">
-            <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <span>
-              Informe seu <strong>Nome</strong> e <strong>CPF</strong>. Caso seja o seu primeiro acesso, seu cadastro será criado automaticamente!
-            </span>
-          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">
+            Bissoli & Bissoli Advogados Associados
+          </h1>
+          <p className="text-xs sm:text-sm font-bold text-amber-400 tracking-wide uppercase">
+            Bem-vindo ao Portal do Cliente
+          </p>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-2">
+            Acesse sua área exclusiva para acompanhar e realizar indicações de forma simples, transparente e segura.
+          </p>
+        </div>
 
-          <form onSubmit={handleClientLogin} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Nome Completo *
-              </label>
-              <input
-                type="text"
-                required
-                value={nomeInput}
-                onChange={(e) => setNomeInput(e.target.value)}
-                placeholder="Ex: João Pedro da Silva"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden transition-all"
-              />
-            </div>
+        {/* CENTER CONTENT: CLIENT CARD + ACCESS FORM */}
+        <div className="max-w-md mx-auto w-full space-y-6 relative z-10 my-auto py-4">
+          
+          {/* VISUAL CLIENT CARD (CARTÃO DO CLIENTE) */}
+          <div className="relative rounded-2xl bg-gradient-to-br from-[#0B192C] via-[#1E3A8A] to-[#071325] p-5 sm:p-6 border-2 border-amber-400/40 shadow-2xl shadow-amber-500/10 overflow-hidden">
+            {/* GOLD STRIPE TOP */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600" />
+            
+            {/* WATERMARK EMBLEM */}
+            <Scale className="absolute -right-6 -bottom-6 w-36 h-36 text-amber-400/5 pointer-events-none" />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                CPF (Identificador Único) *
-              </label>
-              <input
-                type="text"
-                required
-                value={cpfInput}
-                onChange={(e) => handleCpfChange(e, setCpfInput)}
-                placeholder="000.000.000-00"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden transition-all"
-              />
-            </div>
-
-            {loginError && (
-              <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
-                <span>{loginError}</span>
+            {/* CARD TOP ROW */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center space-x-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-400/20 border border-amber-400/50 flex items-center justify-center">
+                  <Scale className="w-4 h-4 text-amber-300" />
+                </div>
+                <span className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase">
+                  Bissoli & Bissoli
+                </span>
               </div>
-            )}
+              <span className="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                Cartão do Cliente
+              </span>
+            </div>
 
-            <button
-              type="submit"
-              className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-500/20 transition-all flex items-center justify-center space-x-2"
-            >
-              <span>Entrar no Meu Painel</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </form>
+            {/* CARD MIDDLE ROW */}
+            <div className="flex items-center justify-between my-3">
+              <div className="space-y-1">
+                <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 p-0.5 shadow-md flex items-center justify-center border border-amber-100/50">
+                  <div className="w-full h-full border border-amber-900/20 rounded-xs flex items-center justify-center">
+                    <div className="w-3 h-3 border-r border-b border-amber-900/40" />
+                  </div>
+                </div>
+                <span className="text-[9px] font-mono text-slate-400 tracking-widest block pt-1">
+                  MEMBER ID • CLIENTE
+                </span>
+              </div>
 
-          {/* DEMO ACCOUNTS PREVIEW FOR FAST TESTING */}
-          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-3 text-center">
-              Ou escolha um cliente para teste rápido:
-            </p>
-            <div className="grid grid-cols-1 gap-2">
+              {/* QR CODE GRAPHIC */}
+              <div className="bg-white p-1.5 rounded-lg shadow-md border border-amber-400/40">
+                <QrCode className="w-8 h-8 text-slate-900" />
+              </div>
+            </div>
+
+            {/* CARD BOTTOM ROW */}
+            <div className="pt-2 border-t border-amber-400/20 flex justify-between items-end">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-amber-400/70">
+                  Acesso Preferencial
+                </p>
+                <p className="text-xs font-bold text-white tracking-wide">
+                  Programa Oficial de Indicações
+                </p>
+              </div>
+              <p className="text-[10px] font-bold text-amber-300 tracking-widest uppercase">
+                VIP ACCESS
+              </p>
+            </div>
+          </div>
+
+          {/* ACCESS CARD FORM */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
+            <div className="mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                Acesso ao Programa de Indicações
+              </h2>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Informe seu Nome e CPF para acessar sua área de indicações. Caso seja seu primeiro acesso, seu cadastro será criado automaticamente.
+              </p>
+            </div>
+
+            <form onSubmit={handleClientLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Nome Completo *
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={nomeInput}
+                    onChange={(e) => setNomeInput(e.target.value)}
+                    placeholder="Ex: João Pedro da Silva"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  CPF (Identificador Único) *
+                </label>
+                <div className="relative">
+                  <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={cpfInput}
+                    onChange={(e) => handleCpfChange(e, setCpfInput)}
+                    placeholder="000.000.000-00"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
+                  />
+                </div>
+              </div>
+
+              {loginError && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
               <button
+                type="submit"
+                className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-[#1E3A8A] via-[#172E6F] to-[#0F285F] hover:from-[#172E6F] hover:to-[#0B1E48] text-white shadow-lg shadow-blue-900/30 border border-amber-400/30 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
+              >
+                <span>Entrar no Meu Painel</span>
+                <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </form>
+
+            {/* SECONDARY ACTION: ACESSAR COMO COLABORADOR */}
+            <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  auth.setPortalType('interno');
+                  auth.refreshData();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                <span>Acessar como Colaborador</span>
+              </button>
+
+              {/* DEMO CLIENT FAST ACCESS */}
+              <button
+                type="button"
                 onClick={() => {
                   setNomeInput('João Pedro da Silva');
                   setCpfInput('123.456.789-00');
                   auth.loginCliente('João Pedro da Silva', '123.456.789-00');
                   auth.refreshData();
                 }}
-                className="text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 transition-colors flex justify-between items-center"
+                className="text-[11px] text-slate-400 hover:text-indigo-600 text-center transition-colors pt-1"
               >
-                <div>
-                  <span className="font-semibold block">João Pedro da Silva</span>
-                  <span className="text-slate-400">CPF: 123.456.789-00</span>
-                </div>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full">
-                  1 Cupom Disponível (R$ 500)
-                </span>
+                Entrar direto como Cliente Demonstrativo (João Pedro)
               </button>
+            </div>
+          </div>
+        </div>
+
+        {/* PARTE INFERIOR: CARD INSTITUCIONAL DO ESCRITÓRIO */}
+        <div className="max-w-2xl mx-auto w-full pt-4 pb-2 relative z-10">
+          <div className="bg-[#0B192C]/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-5 shadow-2xl text-xs text-slate-300 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+            <img
+              src={officeImg}
+              alt="Bissoli & Bissoli Advogados"
+              className="w-full sm:w-36 h-28 object-cover rounded-xl border border-amber-400/30 shrink-0"
+            />
+            <div className="space-y-2 text-center sm:text-left">
+              <h3 className="font-bold text-sm text-white flex items-center justify-center sm:justify-start gap-1.5">
+                <Building2 className="w-4 h-4 text-amber-400" />
+                Bissoli & Bissoli Advogados Associados
+              </h3>
+              <p className="text-slate-300 leading-relaxed text-[11px]">
+                Nosso escritório atua em todo o Brasil oferecendo atendimento jurídico especializado e um programa de indicações transparente para nossos clientes.
+              </p>
+              <div className="pt-2 border-t border-slate-700/60 space-y-1 text-[10px] text-slate-400">
+                <p className="flex items-center justify-center sm:justify-start gap-1">
+                  <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>Av. Paulista, 1000 - Bela Vista, São Paulo/SP • Atendimento Nacional</span>
+                </p>
+                <p className="flex items-center justify-center sm:justify-start gap-3">
+                  <span className="flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-amber-400 shrink-0" />
+                    (11) 3000-0000
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-amber-400 shrink-0" />
+                    contato@bissoliebissoli.adv.br
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
         </div>

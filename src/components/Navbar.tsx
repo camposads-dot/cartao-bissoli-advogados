@@ -81,9 +81,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer }
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-2">
-                Advocacia Cristiane & Associados
+                Bissoli & Bissoli Advogados Associados
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                  LegalReferral CRM
+                  Portal do Cliente & CRM
                 </span>
               </h1>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
