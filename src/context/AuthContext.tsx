@@ -19,17 +19,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [clienteActive, setClienteActive] = useState<Cliente | null>(() => {
-    const saved = localStorage.getItem('indica_active_cliente');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  });
+  const [portalType, setPortalType] = useState<'cliente' | 'interno'>('cliente');
+  const [clienteActive, setClienteActive] = useState<Cliente | null>(null);
 
   const [staffActive, setStaffActive] = useState<UsuarioInterno | null>(() => {
     const saved = localStorage.getItem('indica_active_staff');
@@ -43,22 +34,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
-  const [portalType, setPortalType] = useState<'cliente' | 'interno'>(() => {
-    const savedPortal = localStorage.getItem('indica_portal_type');
-    if (savedPortal === 'interno' || savedPortal === 'cliente') {
-      return savedPortal;
-    }
-    const savedStaff = localStorage.getItem('indica_active_staff');
-    if (savedStaff) return 'interno';
-    return 'cliente';
-  });
-
   const [, setTick] = useState(0);
   const refreshData = () => setTick((t) => t + 1);
-
-  useEffect(() => {
-    localStorage.setItem('indica_portal_type', portalType);
-  }, [portalType]);
 
   useEffect(() => {
     if (clienteActive) {
@@ -159,9 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutStaff = () => {
     setStaffActive(null);
-    setPortalType('cliente');
     localStorage.removeItem('indica_active_staff');
-    localStorage.setItem('indica_portal_type', 'cliente');
   };
 
   return (

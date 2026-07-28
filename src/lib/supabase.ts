@@ -165,7 +165,7 @@ export const apiStore = {
       if (existing.nome.trim().toLowerCase() === cliente.nome.trim().toLowerCase()) {
         return existing;
       }
-      throw new Error(`O CPF ${cliente.cpf} já está associado ao cliente "${existing.nome}". Por favor, utilize o nome correto cadastrado para este CPF.`);
+      throw new Error(`O CPF informado já está cadastrado em outro nome. Por favor, preencha o nome corretamente.`);
     }
 
     const newCliente: Cliente = {

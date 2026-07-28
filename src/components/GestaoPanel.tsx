@@ -86,18 +86,43 @@ export const GestaoPanel: React.FC = () => {
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#6366f1', '#64748b'];
 
-  // CHART DATA BY MONTH/PERIODO
-  const monthlyData = [
-    { name: 'Jan', indicações: 12, contratos: 4 },
-    { name: 'Fev', indicações: 18, contratos: 7 },
-    { name: 'Mar', indicações: 24, contratos: 11 },
-    { name: 'Abr', indicações: 15, contratos: 6 },
-    { name: 'Mai', indicações: 28, contratos: 14 },
-    { name: 'Jun', indicações: totalIndicacoes, contratos: totalContratos },
-  ];
+  // DYNAMIC CHART DATA GROUPED BY MONTH FROM REAL INDICAÇÕES
+  const getMonthlyData = () => {
+    const monthsPt = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const now = new Date();
+
+    const result = [];
+    // Calculate past 6 months dynamically based on current date
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const monthIndex = d.getMonth();
+      const monthName = monthsPt[monthIndex];
+
+      const indsInMonth = indicacoes.filter((ind) => {
+        if (!ind.criadoEm) return false;
+        const indDate = new Date(ind.criadoEm);
+        return indDate.getFullYear() === year && indDate.getMonth() === monthIndex;
+      });
+
+      const contrInMonth = indsInMonth.filter(
+        (i) => i.status === 'Contrato Fechado' || i.status === 'Cupom Gerado' || i.status === 'Cupom Utilizado'
+      ).length;
+
+      result.push({
+        name: monthName,
+        indicações: indsInMonth.length,
+        contratos: contrInMonth,
+      });
+    }
+
+    return result;
+  };
+
+  const monthlyData = getMonthlyData();
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
@@ -131,7 +156,7 @@ export const GestaoPanel: React.FC = () => {
       </div>
 
       {/* KPIS CARDS GRID */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-4">
         <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Clientes Totais</p>
           <p className="text-xl sm:text-2xl font-light text-slate-900 dark:text-white">{totalClientes}</p>
@@ -196,26 +221,32 @@ export const GestaoPanel: React.FC = () => {
             <PieIcon className="w-5 h-5 text-amber-500" />
             Distribuição por Tipo de Ação
           </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={actionTypeData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="count"
-                >
-                  {actionTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend fontSize={10} />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full flex items-center justify-center">
+            {actionTypeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={actionTypeData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="count"
+                  >
+                    {actionTypeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend fontSize={10} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-xs text-slate-400 text-center px-4">
+                Nenhuma indicação cadastrada por tipo de ação ainda. Os dados serão exibidos conforme novas indicações forem registradas.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -229,40 +260,49 @@ export const GestaoPanel: React.FC = () => {
             Ranking de Clientes Indicadores
           </h3>
           <div className="space-y-3">
-            {clientRankings.slice(0, 5).map((rank, idx) => (
-              <div
-                key={rank.cliente.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
-              >
-                <div className="flex items-center space-x-3">
-                  <span
-                    className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center ${
-                      idx === 0
-                        ? 'bg-amber-500 text-white shadow-xs'
-                        : idx === 1
-                        ? 'bg-slate-300 text-slate-800'
-                        : idx === 2
-                        ? 'bg-amber-700 text-white'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                    }`}
+            {clientRankings.length > 0 && clientRankings.some((r) => r.totalInds > 0) ? (
+              clientRankings
+                .filter((r) => r.totalInds > 0)
+                .slice(0, 5)
+                .map((rank, idx) => (
+                  <div
+                    key={rank.cliente.id}
+                    className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40"
                   >
-                    #{idx + 1}
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                      {rank.cliente.nome}
-                    </h4>
-                    <p className="text-[10px] text-slate-400">CPF: {rank.cliente.cpf}</p>
-                  </div>
-                </div>
+                    <div className="flex items-center space-x-3">
+                      <span
+                        className={`w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center ${
+                          idx === 0
+                            ? 'bg-amber-500 text-white shadow-xs'
+                            : idx === 1
+                            ? 'bg-slate-300 text-slate-800'
+                            : idx === 2
+                            ? 'bg-amber-700 text-white'
+                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                        }`}
+                      >
+                        #{idx + 1}
+                      </span>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                          {rank.cliente.nome}
+                        </h4>
+                        <p className="text-[10px] text-slate-400">CPF: {rank.cliente.cpf}</p>
+                      </div>
+                    </div>
 
-                <div className="text-right text-xs">
-                  <span className="font-bold text-blue-600 dark:text-blue-400">{rank.totalInds} ind.</span>
-                  <span className="text-slate-400 mx-1">|</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{rank.contratos} contr.</span>
-                </div>
-              </div>
-            ))}
+                    <div className="text-right text-xs">
+                      <span className="font-bold text-blue-600 dark:text-blue-400">{rank.totalInds} ind.</span>
+                      <span className="text-slate-400 mx-1">|</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">{rank.contratos} contr.</span>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <p className="text-xs text-slate-400 py-6 text-center">
+                Nenhuma indicação registrada por clientes ainda. O ranking será atualizado automaticamente assim que novas indicações forem inseridas.
+              </p>
+            )}
           </div>
         </div>
 
