@@ -188,66 +188,19 @@ export const ClientPortal: React.FC = () => {
   // IF NO CLIENT LOGGED IN -> EXCLUSIVE INSTITUTIONAL LANDING & LOGIN SCREEN
   if (!auth.clienteActive) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-3 sm:p-8 relative overflow-hidden w-full max-w-full">
+      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-3 sm:p-6 lg:p-10 relative overflow-x-hidden w-full max-w-full font-sans">
         {/* BACKGROUND DECORATIVE GLOWS */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[300px] bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-[350px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
+        <div className="absolute bottom-0 right-0 w-[500px] max-w-full h-[300px] bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
 
-        {/* TOP BRAND HEADER */}
-        <div className="max-w-4xl mx-auto w-full text-center pt-2 sm:pt-6 pb-2 relative z-10">
-          {/* OFFICE LOGO IMAGE */}
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-[#0B192C]/80 rounded-2xl border border-amber-400/40 shadow-2xl shadow-amber-500/10 backdrop-blur-md inline-block">
-              <img
-                src="https://i.ibb.co/hxkKFSXL/logo.png"
-                alt="Bissoli & Bissoli Advogados Associados"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.dataset.triedJpg) {
-                    target.dataset.triedJpg = 'true';
-                    target.src = 'https://i.ibb.co/hxkKFSXL/logo.jpg';
-                  } else if (!target.dataset.triedWebp) {
-                    target.dataset.triedWebp = 'true';
-                    target.src = 'https://i.ibb.co/hxkKFSXL/logo.webp';
-                  } else if (!target.dataset.triedImg) {
-                    target.dataset.triedImg = 'true';
-                    target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
-                  }
-                }}
-                className="h-16 sm:h-20 w-auto object-contain mx-auto rounded-lg max-w-[280px]"
-              />
-            </div>
-          </div>
-
-          <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-1">
-            Bissoli & Bissoli Advogados Associados
-          </h1>
-          <p className="text-xs sm:text-sm font-bold text-amber-400 tracking-wide uppercase">
-            Bem-vindo ao Portal do Cliente
-          </p>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto mt-2 px-2">
-            Acesse sua área exclusiva para acompanhar e realizar indicações de forma simples, transparente e segura.
-          </p>
-        </div>
-
-        {/* CENTER CONTENT: CLIENT CARD + ACCESS FORM */}
-        <div className="max-w-md mx-auto w-full space-y-6 relative z-10 my-auto py-4">
-          
-          {/* VISUAL CLIENT CARD (CARTÃO DO CLIENTE) */}
-          <div className="relative rounded-2xl bg-gradient-to-br from-[#0B192C] via-[#1E3A8A] to-[#071325] p-5 sm:p-6 border-2 border-amber-400/40 shadow-2xl shadow-amber-500/10 overflow-hidden">
-            {/* GOLD STRIPE TOP */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600" />
-            
-            {/* WATERMARK EMBLEM */}
-            <Scale className="absolute -right-6 -bottom-6 w-36 h-36 text-amber-400/5 pointer-events-none" />
-
-            {/* CARD TOP ROW */}
-            <div className="flex items-center justify-between mb-5 gap-2">
-              <div className="flex items-center space-x-2 min-w-0">
+        {/* TOP BRAND HEADER (MOBILE/DESKTOP) */}
+        <div className="max-w-6xl mx-auto w-full pt-2 sm:pt-4 pb-2 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-amber-500/20 pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-[#0B192C]/90 rounded-xl border border-amber-400/40 shadow-lg shrink-0">
                 <img
                   src="https://i.ibb.co/hxkKFSXL/logo.png"
-                  alt="Logo"
+                  alt="Bissoli & Bissoli"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -262,173 +215,251 @@ export const ClientPortal: React.FC = () => {
                       target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
                     }
                   }}
-                  className="h-7 w-auto object-contain bg-amber-400/10 p-0.5 rounded border border-amber-400/40 shrink-0"
+                  className="h-10 sm:h-12 w-auto object-contain rounded"
                 />
-                <span className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase truncate">
-                  Bissoli & Bissoli
-                </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
-                Cartão do Cliente
-              </span>
-            </div>
-
-            {/* CARD MIDDLE ROW */}
-            <div className="flex items-center justify-between my-3">
-              <div className="space-y-1">
-                <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 p-0.5 shadow-md flex items-center justify-center border border-amber-100/50">
-                  <div className="w-full h-full border border-amber-900/20 rounded-xs flex items-center justify-center">
-                    <div className="w-3 h-3 border-r border-b border-amber-900/40" />
-                  </div>
-                </div>
-                <span className="text-[9px] font-mono text-slate-400 tracking-widest block pt-1">
-                  MEMBER ID • CLIENTE
-                </span>
-              </div>
-
-              {/* QR CODE GRAPHIC */}
-              <div className="bg-white p-1.5 rounded-lg shadow-md border border-amber-400/40">
-                <QrCode className="w-8 h-8 text-slate-900" />
-              </div>
-            </div>
-
-            {/* CARD BOTTOM ROW */}
-            <div className="pt-2 border-t border-amber-400/20 flex justify-between items-end">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-wider text-amber-400/70">
-                  Acesso Preferencial
+                <h1 className="text-base sm:text-2xl font-extrabold text-white tracking-tight leading-tight">
+                  Bissoli & Bissoli Advogados Associados
+                </h1>
+                <p className="text-[11px] sm:text-xs font-bold text-amber-400 tracking-wider uppercase">
+                  Portal do Cliente • Sistema de Indicações
                 </p>
-                <p className="text-xs font-bold text-white tracking-wide">
-                  Área Oficial do Cliente Bissoli & Bissoli
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                auth.setPortalType('interno');
+                auth.refreshData();
+              }}
+              className="px-3.5 py-1.5 rounded-xl font-semibold text-xs border border-amber-400/30 bg-amber-400/10 hover:bg-amber-400/20 text-amber-300 flex items-center space-x-1.5 transition-colors shrink-0"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Acesso Equipe / Colaborador</span>
+            </button>
+          </div>
+        </div>
+
+        {/* MAIN DUAL COLUMN HERO (DESKTOP GRID / MOBILE STACK) */}
+        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch my-auto py-4 relative z-10">
+          
+          {/* LEFT COLUMN: BRANDING, VISUAL CLIENT CARD & INSTITUTIONAL CARD */}
+          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+            <div className="space-y-3">
+              <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/30 uppercase">
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+                Programa de Benefícios & Acompanhamento
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                Indique amigos e receba <span className="text-amber-400">recompensas exclusivas</span> em honorários
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Bem-vindo ao Portal Oficial de Clientes do escritório Bissoli & Bissoli. Cadastre e acompanhe suas indicações de forma 100% transparente, segura e digital.
+              </p>
+            </div>
+
+            {/* VISUAL CLIENT CARD (CARTÃO DO CLIENTE) */}
+            <div className="relative rounded-2xl bg-gradient-to-br from-[#0B192C] via-[#1E3A8A] to-[#071325] p-5 sm:p-6 border-2 border-amber-400/40 shadow-2xl shadow-amber-500/10 overflow-hidden">
+              {/* GOLD STRIPE TOP */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-600" />
+              
+              {/* WATERMARK EMBLEM */}
+              <Scale className="absolute -right-6 -bottom-6 w-36 h-36 text-amber-400/5 pointer-events-none" />
+
+              {/* CARD TOP ROW */}
+              <div className="flex items-center justify-between mb-5 gap-2">
+                <div className="flex items-center space-x-2 min-w-0">
+                  <img
+                    src="https://i.ibb.co/hxkKFSXL/logo.png"
+                    alt="Logo"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.triedJpg) {
+                        target.dataset.triedJpg = 'true';
+                        target.src = 'https://i.ibb.co/hxkKFSXL/logo.jpg';
+                      } else if (!target.dataset.triedWebp) {
+                        target.dataset.triedWebp = 'true';
+                        target.src = 'https://i.ibb.co/hxkKFSXL/logo.webp';
+                      } else if (!target.dataset.triedImg) {
+                        target.dataset.triedImg = 'true';
+                        target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
+                      }
+                    }}
+                    className="h-7 w-auto object-contain bg-amber-400/10 p-0.5 rounded border border-amber-400/40 shrink-0"
+                  />
+                  <span className="text-[11px] font-extrabold tracking-widest text-amber-300 uppercase truncate">
+                    Bissoli & Bissoli
+                  </span>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-amber-400/20 text-amber-300 border border-amber-400/30 shrink-0">
+                  Cartão do Cliente
+                </span>
+              </div>
+
+              {/* CARD MIDDLE ROW */}
+              <div className="flex items-center justify-between my-3">
+                <div className="space-y-1">
+                  <div className="w-10 h-7 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 p-0.5 shadow-md flex items-center justify-center border border-amber-100/50">
+                    <div className="w-full h-full border border-amber-900/20 rounded-xs flex items-center justify-center">
+                      <div className="w-3 h-3 border-r border-b border-amber-900/40" />
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-mono text-slate-300 tracking-widest block pt-1">
+                    MEMBER ID • CLIENTE PREFERENCIAL
+                  </span>
+                </div>
+
+                {/* QR CODE GRAPHIC */}
+                <div className="bg-white p-1.5 rounded-lg shadow-md border border-amber-400/40">
+                  <QrCode className="w-8 h-8 text-slate-900" />
+                </div>
+              </div>
+
+              {/* CARD BOTTOM ROW */}
+              <div className="pt-2 border-t border-amber-400/20 flex justify-between items-end">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-amber-400/80">
+                    Acesso Preferencial
+                  </p>
+                  <p className="text-xs font-bold text-white tracking-wide">
+                    Área Oficial do Cliente Bissoli & Bissoli
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD INSTITUCIONAL DO ESCRITÓRIO */}
+            <div className="bg-[#0B192C]/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-4 shadow-2xl text-xs text-slate-300 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+              <img
+                src="https://i.ibb.co/8g86BQ1f/office.jpg"
+                alt="Bissoli & Bissoli Advogados"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.dataset.triedPng) {
+                    target.dataset.triedPng = 'true';
+                    target.src = 'https://i.ibb.co/8g86BQ1f/office.png';
+                  } else if (!target.dataset.triedFallback) {
+                    target.dataset.triedFallback = 'true';
+                    target.src = officeImg;
+                  }
+                }}
+                className="w-full sm:w-36 h-28 object-cover rounded-xl border border-amber-400/30 shrink-0"
+              />
+              <div className="space-y-2 text-center sm:text-left min-w-0 flex-1">
+                <h3 className="font-bold text-sm text-white flex items-center justify-center sm:justify-start gap-1.5">
+                  <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Atendimento Especializado em Ariquemes - RO</span>
+                </h3>
+                <p className="text-slate-300 leading-relaxed text-[11px]">
+                  Oferecemos atendimento em diversas áreas do Direito com rigor técnico, sigilo e transparência.
                 </p>
+                <div className="pt-2 border-t border-slate-700/60 space-y-1 text-[10px] text-slate-400">
+                  <p className="flex items-center justify-center sm:justify-start gap-1">
+                    <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
+                    <span className="break-words">Tv. Marajoara, 3796 - St. 02, Ariquemes - RO</span>
+                  </p>
+                  <p className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                    <span className="flex items-center gap-1">
+                      <Phone className="w-3 h-3 text-amber-400 shrink-0" />
+                      (69) 99944-6100
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-amber-400 shrink-0" />
+                      advogados.eb@gmail.com
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ACCESS CARD FORM */}
-          <div className="bg-white rounded-3xl p-5 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
-            <div className="mb-6">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Acesso à Área do cliente
-              </h2>
-              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
-                Informe seu Nome e CPF para acessar sua área de indicações. Caso seja seu primeiro acesso, seu cadastro será criado automaticamente.
-              </p>
-            </div>
-
-            <form onSubmit={handleClientLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Nome Completo *
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    required
-                    value={nomeInput}
-                    onChange={(e) => setNomeInput(e.target.value)}
-                    placeholder="Ex: João Pedro da Silva"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
-                  />
-                </div>
+          {/* RIGHT COLUMN: ACCESS FORM CARD */}
+          <div className="lg:col-span-5 flex flex-col justify-center">
+            <div className="bg-white rounded-3xl p-5 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900 w-full">
+              <div className="mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                  Acesso à Área do Cliente
+                </h2>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                  Informe seu Nome e CPF para acessar seu painel de indicações. Seu cadastro será criado ou sincronizado automaticamente.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  CPF (Identificador Único) *
-                </label>
-                <div className="relative">
-                  <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    required
-                    value={cpfInput}
-                    onChange={(e) => handleCpfChange(e, setCpfInput)}
-                    placeholder="000.000.000-00"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
-                  />
+              <form onSubmit={handleClientLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Nome Completo *
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      value={nomeInput}
+                      onChange={(e) => setNomeInput(e.target.value)}
+                      placeholder="Ex: João Pedro da Silva"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    CPF (Identificador Único) *
+                  </label>
+                  <div className="relative">
+                    <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      value={cpfInput}
+                      onChange={(e) => handleCpfChange(e, setCpfInput)}
+                      placeholder="000.000.000-00"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 focus:outline-hidden transition-all"
+                    />
+                  </div>
+                </div>
+
+                {loginError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-[#1E3A8A] via-[#172E6F] to-[#0F285F] hover:from-[#172E6F] hover:to-[#0B1E48] text-white shadow-lg shadow-blue-900/30 border border-amber-400/30 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
+                >
+                  <span>Entrar no Meu Painel</span>
+                  <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
+                </button>
+              </form>
+
+              {/* SECONDARY ACTION: COLLABORATOR LOGIN */}
+              <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    auth.setPortalType('interno');
+                    auth.refreshData();
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                  <span>Acessar como colaborador da equipe</span>
+                </button>
               </div>
-
-              {loginError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-[#1E3A8A] via-[#172E6F] to-[#0F285F] hover:from-[#172E6F] hover:to-[#0B1E48] text-white shadow-lg shadow-blue-900/30 border border-amber-400/30 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
-              >
-                <span>Entrar no Meu Painel</span>
-                <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
-
-            {/* SECONDARY ACTION: COLLABORATOR LOGIN */}
-            <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col space-y-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  auth.setPortalType('interno');
-                  auth.refreshData();
-                }}
-                className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
-              >
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                <span>Acessar como colaborador</span>
-              </button>
             </div>
           </div>
         </div>
 
-        {/* PARTE INFERIOR: CARD INSTITUCIONAL DO ESCRITÓRIO */}
-        <div className="max-w-2xl mx-auto w-full pt-4 pb-2 relative z-10">
-          <div className="bg-[#0B192C]/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-4 sm:p-5 shadow-2xl text-xs text-slate-300 flex flex-col sm:flex-row items-center sm:items-start gap-4">
-            <img
-              src="https://i.ibb.co/8g86BQ1f/office.jpg"
-              alt="Bissoli & Bissoli Advogados"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (!target.dataset.triedPng) {
-                  target.dataset.triedPng = 'true';
-                  target.src = 'https://i.ibb.co/8g86BQ1f/office.png';
-                } else if (!target.dataset.triedFallback) {
-                  target.dataset.triedFallback = 'true';
-                  target.src = officeImg;
-                }
-              }}
-              className="w-full sm:w-36 h-28 object-cover rounded-xl border border-amber-400/30 shrink-0"
-            />
-            <div className="space-y-2 text-center sm:text-left min-w-0">
-              <h3 className="font-bold text-sm text-white flex items-center justify-center sm:justify-start gap-1.5">
-                <Building2 className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Bissoli & Bissoli Advogados Associados</span>
-              </h3>
-              <p className="text-slate-300 leading-relaxed text-[11px]">
-                Nosso escritório atua oferecendo atendimento jurídico especializado e um programa de indicações transparente para nossos clientes.
-              </p>
-              <div className="pt-2 border-t border-slate-700/60 space-y-1 text-[10px] text-slate-400">
-                <p className="flex items-center justify-center sm:justify-start gap-1 text-center sm:text-left">
-                  <MapPin className="w-3 h-3 text-amber-400 shrink-0" />
-                  <span className="break-words">Tv. Marajoara, 3796 - St. 02, Ariquemes - RO, 76873-242</span>
-                </p>
-                <p className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-3">
-                  <span className="flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-amber-400 shrink-0" />
-                    (69) 99944-6100
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Mail className="w-3 h-3 text-amber-400 shrink-0" />
-                    advogados.eb@gmail.com
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* FOOTER COPYRIGHT */}
+        <div className="max-w-6xl mx-auto w-full pt-2 pb-2 relative z-10 text-center text-[11px] text-slate-400 border-t border-slate-800/80">
+          <p>© {new Date().getFullYear()} Bissoli & Bissoli Advogados Associados. Todos os direitos reservados.</p>
         </div>
       </div>
     );
@@ -463,10 +494,11 @@ export const ClientPortal: React.FC = () => {
 
             <button
               onClick={() => auth.logoutCliente()}
-              className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors border border-slate-700"
+              className="px-3.5 py-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900 text-rose-200 transition-colors border border-rose-800/80 flex items-center space-x-1.5 text-xs font-bold shrink-0"
               title="Sair da Conta"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-rose-300" />
+              <span>Sair</span>
             </button>
           </div>
         </div>

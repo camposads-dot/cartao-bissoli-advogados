@@ -68,10 +68,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
   if (auth.portalType === 'cliente') {
     return (
       <header className="sticky top-0 z-40 bg-[#0B192C]/95 backdrop-blur-md border-b border-amber-500/30 text-white shadow-lg transition-colors duration-200">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 gap-3">
+        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 gap-2">
             {/* OFFICE LOGO & BRAND */}
-            <div className="flex items-center space-x-3 shrink-0 min-w-0">
+            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
               <img
                 src="https://i.ibb.co/hxkKFSXL/logo.png"
                 alt="Bissoli & Bissoli"
@@ -89,20 +89,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
                     target.src = 'https://i.ibb.co/hxkKFSXL/image.png';
                   }
                 }}
-                className="h-8 sm:h-9 w-auto object-contain bg-amber-400/10 p-1 rounded-lg border border-amber-400/40 shrink-0"
+                className="h-7 sm:h-9 w-auto object-contain bg-amber-400/10 p-1 rounded-lg border border-amber-400/40 shrink-0"
               />
-              <div className="min-w-0">
+              <div className="min-w-0 max-w-[130px] sm:max-w-none">
                 <h1 className="text-xs sm:text-sm font-extrabold text-white leading-tight truncate">
-                  Bissoli & Bissoli Advogados
+                  Bissoli & Bissoli
                 </h1>
                 <p className="text-[10px] sm:text-[11px] font-bold text-amber-400 tracking-wide uppercase truncate">
-                  Área Oficial do Cliente
+                  Área do Cliente
                 </p>
               </div>
             </div>
 
             {/* RIGHT SIDE: CLIENT BADGE & LOGOUT */}
-            <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
               {auth.clienteActive && (
                 <div className="hidden sm:flex items-center space-x-2 px-3 py-1 bg-amber-400/10 rounded-xl border border-amber-400/30 text-amber-300 text-xs font-semibold">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -113,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
               {/* THEME TOGGLE */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors"
+                className="p-1.5 sm:p-2 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors shrink-0"
                 title="Alternar Tema Claro/Escuro"
               >
                 {theme === 'dark' ? (
@@ -127,11 +127,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
               {auth.clienteActive && (
                 <button
                   onClick={() => auth.logoutCliente()}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-rose-900/50 hover:bg-rose-900/80 text-rose-200 text-xs font-semibold border border-rose-700/60 transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold border border-rose-500 shadow-md transition-colors cursor-pointer shrink-0"
                   title="Sair da Área do Cliente"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sair</span>
+                  <LogOut className="w-3.5 h-3.5 text-white" />
+                  <span className="text-xs font-bold">Sair</span>
                 </button>
               )}
             </div>
@@ -151,15 +151,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs shrink-0">
               <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight flex flex-wrap items-center gap-1 sm:gap-2 truncate">
+            <div className="min-w-0 max-w-[125px] sm:max-w-none">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-1 truncate">
                 <span className="truncate">Bissoli & Bissoli</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
-                  Painel da Equipe
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
+                  Equipe
                 </span>
               </h1>
               <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                Sistema Interno de Gestão & CRM
+                Painel Interno
               </p>
             </div>
           </div>
@@ -190,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
           </div>
 
           {/* RIGHT ACTIONS: QUICK ROLE SWITCHER, REPORTS, THEME TOGGLE, LOGOUT */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
             {/* ROLE SELECTOR WHEN IN INTERNAL PORTAL */}
             {auth.portalType === 'interno' && (
               <div className="hidden xl:flex items-center space-x-1 mr-1 p-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700">
@@ -213,30 +213,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
               </div>
             )}
 
-            {/* REPORTS BUTTON */}
+            {/* REPORTS BUTTON (DESKTOP / TABLET ONLY IN HEADER) */}
             <button
               onClick={onOpenReports}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
+              className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
               title="Gerar e Exportar Relatórios"
             >
               <FileText className="w-4 h-4 text-amber-500" />
-              <span className="hidden sm:inline">Relatórios</span>
+              <span>Relatórios</span>
             </button>
 
-            {/* SUPABASE SQL SCRIPT BUTTON */}
+            {/* SUPABASE SQL SCRIPT BUTTON - HIDDEN ON MOBILE SO SAIR BUTTON IS ALWAYS VISIBLE */}
             <button
               onClick={onOpenSqlViewer}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 transition-colors"
+              className="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 transition-colors"
               title="Ver Script SQL do Supabase"
             >
               <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="hidden sm:inline">Script SQL</span>
+              <span>Script SQL</span>
             </button>
 
             {/* THEME TOGGLE */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
               title="Alternar Tema Claro/Escuro"
             >
               {theme === 'dark' ? (
@@ -246,27 +246,35 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
               )}
             </button>
 
-            {/* STAFF LOGOUT BUTTON */}
+            {/* STAFF LOGOUT BUTTON - ALWAYS VISIBLE ON MOBILE AND DESKTOP */}
             <button
               onClick={() => auth.logoutStaff()}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-bold border border-rose-200 dark:border-rose-800 transition-colors cursor-pointer"
+              className="flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold border border-rose-500 shadow-sm transition-colors cursor-pointer shrink-0"
               title="Sair do Painel da Equipe"
             >
-              <LogOut className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-              <span className="hidden sm:inline">Sair</span>
+              <LogOut className="w-3.5 h-3.5 text-white" />
+              <span className="text-xs font-bold">Sair</span>
             </button>
           </div>
         </div>
 
         {/* MOBILE ACTIONS */}
-        <div className="lg:hidden py-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
-          <div className="flex gap-2">
+        <div className="lg:hidden py-2.5 border-t border-slate-200 dark:border-slate-800 space-y-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={onOpenSearchCpf}
               className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-400/40 flex items-center justify-center space-x-1.5"
             >
               <UserCheck className="w-3.5 h-3.5 text-amber-600" />
               <span>Pesquisar por CPF</span>
+            </button>
+
+            <button
+              onClick={onOpenReports}
+              className="sm:hidden py-2 px-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 flex items-center justify-center space-x-1.5"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-500" />
+              <span>Relatórios</span>
             </button>
           </div>
 
