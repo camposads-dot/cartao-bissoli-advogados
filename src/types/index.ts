@@ -39,6 +39,7 @@ export interface Cliente {
 export interface TipoAcao {
   id: string;
   nome: string;
+  valorRecompensa?: number;
   ativo: boolean;
   criadoEm: string;
 }

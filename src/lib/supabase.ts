@@ -32,13 +32,13 @@ const STORAGE_KEYS = {
 
 // INITIAL SEED DATA
 const defaultTiposAcao: TipoAcao[] = [
-  { id: '1', nome: 'Previdenciário', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '2', nome: 'Trabalhista', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '3', nome: 'Consumidor', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '4', nome: 'Família', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '5', nome: 'Inventário', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '6', nome: 'Empresarial', ativo: true, criadoEm: new Date().toISOString() },
-  { id: '7', nome: 'Outro', ativo: true, criadoEm: new Date().toISOString() },
+  { id: '1', nome: 'Previdenciário', valorRecompensa: 500, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '2', nome: 'Trabalhista', valorRecompensa: 600, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '3', nome: 'Consumidor', valorRecompensa: 300, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '4', nome: 'Família', valorRecompensa: 500, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '5', nome: 'Inventário', valorRecompensa: 800, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '6', nome: 'Empresarial', valorRecompensa: 1000, ativo: true, criadoEm: new Date().toISOString() },
+  { id: '7', nome: 'Outro', valorRecompensa: 500, ativo: true, criadoEm: new Date().toISOString() },
 ];
 
 const defaultUsuarios: UsuarioInterno[] = [
@@ -249,6 +249,15 @@ export const apiStore = {
       const existingCupom = cupons.find((c) => c.indicacaoId === target.id);
 
       if (!existingCupom) {
+        // Look up the specific TipoAcao reward value first
+        const tiposAcao = apiStore.getTiposAcao();
+        const tipoEncontrado = tiposAcao.find(
+          (t) => t.id === target.tipoAcaoId || t.nome.toLowerCase() === (target.tipoAcaoNome || '').toLowerCase()
+        );
+        const valorRecompensa = (tipoEncontrado && typeof tipoEncontrado.valorRecompensa === 'number' && tipoEncontrado.valorRecompensa > 0)
+          ? tipoEncontrado.valorRecompensa
+          : config.valorPadraoCupom;
+
         const codAleatorio = Math.random().toString(36).substring(2, 8).toUpperCase();
         cupomGerado = {
           id: 'cup_' + Math.random().toString(36).substring(2, 9),
@@ -258,7 +267,7 @@ export const apiStore = {
           clienteNome: target.clienteNome,
           clienteCpf: target.clienteCpf,
           nomeIndicado: target.nomeIndicado,
-          valor: config.valorPadraoCupom,
+          valor: valorRecompensa,
           status: 'Disponivel',
           dataGeracao: new Date().toISOString(),
           responsavelValidacaoNome: responsavelNome,
@@ -269,7 +278,7 @@ export const apiStore = {
         apiStore.addLog(
           responsavelNome,
           'Contrato Fechado & Geração de Cupom',
-          `Contrato validado para ${target.nomeIndicado}. Cupom ${cupomGerado.codigo} de R$ ${config.valorPadraoCupom.toFixed(2)} disponibilizado para o cliente ${target.clienteNome}.`
+          `Contrato validado para ${target.nomeIndicado}. Cupom ${cupomGerado.codigo} de R$ ${valorRecompensa.toFixed(2)} (${tipoEncontrado?.nome || 'Ação'}) disponibilizado para o cliente ${target.clienteNome}.`
         );
       }
     } else {
@@ -413,16 +422,40 @@ export const apiStore = {
   },
 
   getTiposAcao: (): TipoAcao[] => getStoreData<TipoAcao[]>(STORAGE_KEYS.TIPOS_ACAO),
-  saveTipoAcao: (nome: string): TipoAcao => {
+  saveTipoAcao: (nome: string, valorRecompensa?: number): TipoAcao => {
     const tipos = apiStore.getTiposAcao();
+    const config = apiStore.getConfig();
+    const val = typeof valorRecompensa === 'number' && !isNaN(valorRecompensa) ? valorRecompensa : config.valorPadraoCupom;
     const newTipo: TipoAcao = {
       id: 'ta_' + Math.random().toString(36).substring(2, 9),
       nome,
+      valorRecompensa: val,
       ativo: true,
       criadoEm: new Date().toISOString(),
     };
     setStoreData(STORAGE_KEYS.TIPOS_ACAO, [...tipos, newTipo]);
+    apiStore.addLog('Super Admin', 'Criação de Tipo de Ação', `Nova ação '${nome}' cadastrada com valor de recompensa R$ ${val.toFixed(2)}.`);
     return newTipo;
+  },
+  updateTipoAcao: (id: string, updates: Partial<TipoAcao>): TipoAcao => {
+    const tipos = apiStore.getTiposAcao();
+    const idx = tipos.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error('Tipo de Ação não encontrado.');
+
+    const target = { ...tipos[idx], ...updates };
+    tipos[idx] = target;
+    setStoreData(STORAGE_KEYS.TIPOS_ACAO, tipos);
+    apiStore.addLog('Super Admin', 'Atualização de Tipo de Ação', `Tipo de ação '${target.nome}' atualizado com recompensa R$ ${(target.valorRecompensa || 0).toFixed(2)}.`);
+    return target;
+  },
+  deleteTipoAcao: (id: string): void => {
+    const tipos = apiStore.getTiposAcao();
+    const target = tipos.find((t) => t.id === id);
+    if (!target) throw new Error('Tipo de Ação não encontrado.');
+
+    const filtered = tipos.filter((t) => t.id !== id);
+    setStoreData(STORAGE_KEYS.TIPOS_ACAO, filtered);
+    apiStore.addLog('Super Admin', 'Exclusão de Tipo de Ação', `Tipo de ação '${target.nome}' excluído.`);
   },
   toggleTipoAcaoAtivo: (id: string): void => {
     const tipos = apiStore.getTiposAcao();

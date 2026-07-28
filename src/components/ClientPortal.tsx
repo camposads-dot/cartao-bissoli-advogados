@@ -768,7 +768,7 @@ export const ClientPortal: React.FC = () => {
                   <option value="">Selecione o tipo de ação jurídica</option>
                   {tiposAcao.map((tipo) => (
                     <option key={tipo.id} value={tipo.id}>
-                      {tipo.nome}
+                      {tipo.nome} {tipo.valorRecompensa ? `— Recompensa: R$ ${tipo.valorRecompensa.toFixed(2)}` : ''}
                     </option>
                   ))}
                 </select>
