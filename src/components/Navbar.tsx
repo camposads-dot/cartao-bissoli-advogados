@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { apiStore } from '../lib/supabase';
 import {
   Building2,
   Users,
@@ -16,6 +17,13 @@ import {
   Sparkles,
   UserCheck,
   Search,
+  Bell,
+  Contact,
+  CheckCircle2,
+  Clock,
+  UserPlus,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 import { PerfilCodigo } from '../types';
 
@@ -23,13 +31,77 @@ interface NavbarProps {
   onOpenReports: () => void;
   onOpenSqlViewer: () => void;
   onOpenSearchCpf: () => void;
+  onOpenContacts: () => void;
+  onOpenClientWithCpf?: (cpf: string) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, onOpenSearchCpf }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onOpenReports,
+  onOpenSqlViewer,
+  onOpenSearchCpf,
+  onOpenContacts,
+  onOpenClientWithCpf,
+}) => {
   const { theme, toggleTheme } = useTheme();
   const auth = useAuth();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [readNotifications, setReadNotifications] = useState<string[]>([]);
+  const [, setRefreshTick] = useState(0);
+
+  // Live real-time update listener & poller
+  useEffect(() => {
+    const trigger = () => setRefreshTick((prev) => prev + 1);
+    window.addEventListener('indica_data_updated', trigger);
+    window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', trigger);
+      window.removeEventListener('storage', trigger);
+      clearInterval(timer);
+    };
+  }, []);
+
+  // DERIVE RECENT SYSTEM NOTIFICATIONS
+  const logs = apiStore.getLogs();
+  const clientes = apiStore.getClientes();
+  const indicacoes = apiStore.getIndicacoes();
+
+  // Combine top recent events into a notifications array
+  const rawNotifications = logs.map((log) => {
+    let targetCpf = '';
+    // find client cpf match from log description
+    const foundClient = clientes.find((c) => (log.detalhes && log.detalhes.includes(c.nome)) || (log.usuarioNome && log.usuarioNome.includes(c.nome)));
+    const foundInd = indicacoes.find((i) => (log.detalhes && log.detalhes.includes(i.nomeIndicado)) || (i.clienteNome && log.detalhes && log.detalhes.includes(i.clienteNome)));
+
+    if (foundClient) targetCpf = foundClient.cpf;
+    else if (foundInd) targetCpf = foundInd.clienteCpf;
+
+    return {
+      id: log.id,
+      titulo: log.acao,
+      descricao: log.detalhes,
+      usuario: log.usuarioNome,
+      data: log.criadoEm,
+      cpf: targetCpf,
+      tipo: log.acao.includes('Cliente') ? 'cliente' : 'indicacao',
+    };
+  });
+
+  const notifications = rawNotifications.slice(0, 8);
+  const unreadCount = notifications.filter((n) => !readNotifications.includes(n.id)).length;
+
+  const handleNotificationClick = (notif: typeof notifications[0]) => {
+    setReadNotifications((prev) => [...prev, notif.id]);
+    setNotificationsOpen(false);
+
+    if (notif.cpf && onOpenClientWithCpf) {
+      onOpenClientWithCpf(notif.cpf);
+    } else {
+      onOpenContacts();
+    }
+  };
 
   const roles: { codigo: PerfilCodigo; nome: string; gestor: string; icon: React.ReactNode }[] = [
     {
@@ -166,6 +238,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
 
           {/* SEARCH CLIENT BY CPF BUTTON & LOGGED-IN STAFF BADGE (VISIBLE ON DESKTOP) */}
           <div className="hidden lg:flex items-center space-x-3">
+            <button
+              onClick={onOpenContacts}
+              className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            >
+              <Contact className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>Lista de Clientes</span>
+            </button>
+
             {auth.staffActive && (
               <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
@@ -181,9 +261,101 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
             )}
           </div>
 
-          {/* RIGHT ACTIONS: THEME TOGGLE & LOGOUT (CLEAN & NON-DUPLICATED ON DESKTOP) */}
-          <div className="flex items-center space-x-2">
-            {/* THEME TOGGLE (DESKTOP ONLY - HIDDEN ON MOBILE TO GIVE MAXIMUM SPACE TO LOGOUT) */}
+          {/* RIGHT ACTIONS: NOTIFICATIONS, THEME TOGGLE & LOGOUT */}
+          <div className="flex items-center space-x-2 relative">
+            {/* NOTIFICATION BELL BUTTON */}
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Notificações do Sistema"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-extrabold text-slate-950 shadow-xs animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* NOTIFICATION DROPDOWN POPOVER */}
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden text-slate-900 dark:text-white animate-in fade-in slide-in-from-top-2">
+                  <div className="p-3.5 bg-gradient-to-r from-slate-900 to-[#071325] text-white flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Bell className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-bold">Últimas Atualizações ({notifications.length})</span>
+                    </div>
+                    <button
+                      onClick={() => setNotificationsOpen(false)}
+                      className="p-1 text-slate-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400">
+                        Nenhuma notificação recente.
+                      </div>
+                    ) : (
+                      notifications.map((notif) => {
+                        const isUnread = !readNotifications.includes(notif.id);
+                        return (
+                          <div
+                            key={notif.id}
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`p-3 hover:bg-amber-500/10 cursor-pointer transition-colors flex items-start space-x-3 ${
+                              isUnread ? 'bg-amber-500/5 dark:bg-amber-500/10' : ''
+                            }`}
+                          >
+                            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 shrink-0 mt-0.5">
+                              {notif.tipo === 'cliente' ? (
+                                <UserPlus className="w-4 h-4" />
+                              ) : (
+                                <Clock className="w-4 h-4" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-bold truncate text-slate-900 dark:text-white">
+                                  {notif.titulo}
+                                </h4>
+                                {isUnread && (
+                                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">
+                                {notif.descricao}
+                              </p>
+                              <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400">
+                                <span>Por: {notif.usuario}</span>
+                                <span>{new Date(notif.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="p-2 bg-slate-50 dark:bg-slate-900/90 text-center border-t border-slate-200 dark:border-slate-800">
+                    <button
+                      onClick={() => {
+                        setNotificationsOpen(false);
+                        onOpenContacts();
+                      }}
+                      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline font-bold"
+                    >
+                      Ver todos os contatos e clientes →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* THEME TOGGLE */}
             <button
               onClick={toggleTheme}
               className="hidden lg:flex p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
@@ -221,14 +393,21 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
 
         {/* MOBILE ACTIONS SUB-SECTION */}
         <div className="lg:hidden py-2.5 border-t border-slate-200 dark:border-slate-800 space-y-3">
-          {/* TOP MOBILE ACTION: ONLY BUSCAR POR CPF */}
-          <div>
+          {/* TOP MOBILE ACTIONS */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={onOpenContacts}
+              className="py-2.5 px-3 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border border-indigo-400/40 flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
+            >
+              <Contact className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>Lista Clientes</span>
+            </button>
             <button
               onClick={onOpenSearchCpf}
-              className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-400/40 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              className="py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-400/40 flex items-center justify-center space-x-1.5 transition-colors cursor-pointer"
             >
               <UserCheck className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>Buscar por CPF</span>
+              <span>Buscar CPF</span>
             </button>
           </div>
 

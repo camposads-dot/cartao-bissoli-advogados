@@ -153,6 +153,9 @@ export function getStoreData<T>(key: string): T {
 
 export function setStoreData<T>(key: string, data: T): void {
   localStorage.setItem(key, JSON.stringify(data));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('indica_data_updated', { detail: { key } }));
+  }
 }
 
 // DATA MANAGEMENT API
@@ -160,12 +163,26 @@ export const apiStore = {
   getClientes: (): Cliente[] => getStoreData<Cliente[]>(STORAGE_KEYS.CLIENTES),
   saveCliente: (cliente: Omit<Cliente, 'id' | 'criadoEm'>): Cliente => {
     const clientes = apiStore.getClientes();
-    const existing = clientes.find((c) => c.cpf.replace(/\D/g, '') === cliente.cpf.replace(/\D/g, ''));
+    const cleanCpf = cliente.cpf.replace(/\D/g, '');
+    const existing = clientes.find((c) => c.cpf.replace(/\D/g, '') === cleanCpf);
     if (existing) {
-      if (existing.nome.trim().toLowerCase() === cliente.nome.trim().toLowerCase()) {
-        return existing;
+      let updated = false;
+      if (cliente.telefone && cliente.telefone !== '(00) 00000-0000' && existing.telefone !== cliente.telefone) {
+        existing.telefone = cliente.telefone;
+        updated = true;
       }
-      throw new Error(`O CPF informado já está cadastrado em outro nome. Por favor, preencha o nome corretamente.`);
+      if (cliente.email && existing.email !== cliente.email) {
+        existing.email = cliente.email;
+        updated = true;
+      }
+      if (cliente.nome && cliente.nome !== 'Cliente Não Identificado' && existing.nome !== cliente.nome) {
+        existing.nome = cliente.nome;
+        updated = true;
+      }
+      if (updated) {
+        setStoreData(STORAGE_KEYS.CLIENTES, clientes);
+      }
+      return existing;
     }
 
     const newCliente: Cliente = {
@@ -174,7 +191,106 @@ export const apiStore = {
       criadoEm: new Date().toISOString(),
     };
     setStoreData(STORAGE_KEYS.CLIENTES, [newCliente, ...clientes]);
+
+    apiStore.addLog(
+      'Sistema',
+      'Novo Cliente Cadastrado',
+      `Cliente ${newCliente.nome} (CPF: ${newCliente.cpf}) foi registrado no sistema.`
+    );
+
     return newCliente;
+  },
+
+  updateCliente: (
+    clienteId: string,
+    updatedData: { nome?: string; cpf?: string; telefone?: string; email?: string },
+    usuarioResponsavel?: string
+  ): Cliente => {
+    const clientes = apiStore.getClientes();
+    const index = clientes.findIndex((c) => c.id === clienteId);
+    if (index === -1) throw new Error('Cliente não encontrado.');
+
+    const oldCliente = clientes[index];
+    const newCpf = updatedData.cpf ? updatedData.cpf.trim() : oldCliente.cpf;
+    const oldCpfClean = oldCliente.cpf.replace(/\D/g, '');
+    const newCpfClean = newCpf.replace(/\D/g, '');
+
+    if (newCpfClean !== oldCpfClean) {
+      const duplicate = clientes.find((c) => c.id !== clienteId && c.cpf.replace(/\D/g, '') === newCpfClean);
+      if (duplicate) {
+        throw new Error(`O CPF ${newCpf} já está cadastrado para outro cliente (${duplicate.nome}).`);
+      }
+    }
+
+    const updatedCliente: Cliente = {
+      ...oldCliente,
+      nome: updatedData.nome !== undefined ? updatedData.nome.trim() : oldCliente.nome,
+      cpf: newCpf,
+      telefone: updatedData.telefone !== undefined ? updatedData.telefone.trim() : oldCliente.telefone,
+      email: updatedData.email !== undefined ? updatedData.email.trim() : oldCliente.email,
+    };
+
+    clientes[index] = updatedCliente;
+    setStoreData(STORAGE_KEYS.CLIENTES, clientes);
+
+    // Synchronize indicacoes with new CPF or new Nome
+    const indicacoes = apiStore.getIndicacoes();
+    let indChanged = false;
+    const updatedIndicacoes = indicacoes.map((ind) => {
+      if (ind.clienteId === clienteId || ind.clienteCpf.replace(/\D/g, '') === oldCpfClean) {
+        indChanged = true;
+        return {
+          ...ind,
+          clienteId: clienteId,
+          clienteCpf: updatedCliente.cpf,
+          clienteNome: updatedCliente.nome,
+        };
+      }
+      return ind;
+    });
+
+    if (indChanged) {
+      setStoreData(STORAGE_KEYS.INDICACOES, updatedIndicacoes);
+    }
+
+    // Synchronize cupons
+    const cupons = apiStore.getCupons();
+    let cupChanged = false;
+    const updatedCupons = cupons.map((cup) => {
+      if (cup.clienteId === clienteId || cup.clienteCpf.replace(/\D/g, '') === oldCpfClean) {
+        cupChanged = true;
+        return {
+          ...cup,
+          clienteId: clienteId,
+          clienteCpf: updatedCliente.cpf,
+          clienteNome: updatedCliente.nome,
+        };
+      }
+      return cup;
+    });
+
+    if (cupChanged) {
+      setStoreData(STORAGE_KEYS.CUPONS, updatedCupons);
+    }
+
+    // If active client session matches this client, update local storage session
+    const activeSaved = localStorage.getItem('indica_active_cliente');
+    if (activeSaved) {
+      try {
+        const parsed = JSON.parse(activeSaved);
+        if (parsed.id === clienteId || parsed.cpf.replace(/\D/g, '') === oldCpfClean) {
+          localStorage.setItem('indica_active_cliente', JSON.stringify(updatedCliente));
+        }
+      } catch {}
+    }
+
+    apiStore.addLog(
+      usuarioResponsavel || 'Sistema',
+      'Cadastro de Cliente Editado',
+      `Dados do cliente ${updatedCliente.nome} alterados. Novo CPF: ${updatedCliente.cpf}, Tel: ${updatedCliente.telefone}.`
+    );
+
+    return updatedCliente;
   },
 
   getIndicacoes: (): Indicacao[] => getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES),

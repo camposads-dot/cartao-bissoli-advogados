@@ -52,12 +52,19 @@ export const ClientPortal: React.FC = () => {
   const allCupons = apiStore.getCupons();
 
   // CLIENT SPECIFIC DATA
+  const activeCpfClean = auth.clienteActive?.cpf.replace(/\D/g, '') || '';
+  const activeId = auth.clienteActive?.id || '';
+
   const clienteIndicacoes = auth.clienteActive
-    ? allIndicacoes.filter((i) => i.clienteId === auth.clienteActive?.id)
+    ? allIndicacoes.filter(
+        (i) => i.clienteId === activeId || (activeCpfClean && i.clienteCpf.replace(/\D/g, '') === activeCpfClean)
+      )
     : [];
 
   const clienteCupons = auth.clienteActive
-    ? allCupons.filter((c) => c.clienteId === auth.clienteActive?.id)
+    ? allCupons.filter(
+        (c) => c.clienteId === activeId || (activeCpfClean && c.clienteCpf.replace(/\D/g, '') === activeCpfClean)
+      )
     : [];
 
   // STATS

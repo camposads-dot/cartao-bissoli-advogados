@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { apiStore } from '../lib/supabase';
@@ -20,6 +20,7 @@ import {
   Gift,
   Building2,
   TrendingUp,
+  Contact,
 } from 'lucide-react';
 import { PerfilCodigo } from '../types';
 
@@ -27,15 +28,31 @@ interface SidebarProps {
   onOpenReports: () => void;
   onOpenSqlViewer: () => void;
   onOpenSearchCpf: () => void;
+  onOpenContacts: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   onOpenReports,
   onOpenSqlViewer,
   onOpenSearchCpf,
+  onOpenContacts,
 }) => {
   const { theme, toggleTheme } = useTheme();
   const auth = useAuth();
+  const [, setRefreshTick] = useState(0);
+
+  // Live updates listener & poller
+  useEffect(() => {
+    const trigger = () => setRefreshTick((prev) => prev + 1);
+    window.addEventListener('indica_data_updated', trigger);
+    window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', trigger);
+      window.removeEventListener('storage', trigger);
+      clearInterval(timer);
+    };
+  }, []);
 
   // METRICS SUMMARY FOR SIDEBAR
   const indicacoes = apiStore.getIndicacoes();
@@ -170,6 +187,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             Ferramentas & Pesquisa
           </span>
           <div className="space-y-1">
+            <button
+              onClick={onOpenContacts}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Contact className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span>Lista de Clientes</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+            </button>
+
             <button
               onClick={onOpenSearchCpf}
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"

@@ -11,6 +11,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { ReportsModal } from './components/ReportsModal';
 import { SqlSchemaViewer } from './components/SqlSchemaViewer';
 import { ClientCpfSearchModal } from './components/ClientCpfSearchModal';
+import { ClientContactsModal } from './components/ClientContactsModal';
 import { Sidebar } from './components/Sidebar';
 import { Building2 } from 'lucide-react';
 
@@ -19,6 +20,11 @@ const MainContent: React.FC = () => {
   const [reportsOpen, setReportsOpen] = useState(false);
   const [sqlViewerOpen, setSqlViewerOpen] = useState(false);
   const [cpfSearchOpen, setCpfSearchOpen] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
+
+  const handleOpenClientWithCpf = (cpf: string) => {
+    setCpfSearchOpen(true);
+  };
 
   const renderInternalPanel = () => {
     const perfil = auth.staffActive?.perfil || 'comercial';
@@ -64,6 +70,7 @@ const MainContent: React.FC = () => {
         onOpenReports={() => setReportsOpen(true)}
         onOpenSqlViewer={() => setSqlViewerOpen(true)}
         onOpenSearchCpf={() => setCpfSearchOpen(true)}
+        onOpenContacts={() => setContactsOpen(true)}
       />
 
       {/* MAIN CONTAINER RIGHT COLUMN (SCROLLABLE INDEPENDENTLY ON DESKTOP) */}
@@ -72,6 +79,8 @@ const MainContent: React.FC = () => {
           onOpenReports={() => setReportsOpen(true)}
           onOpenSqlViewer={() => setSqlViewerOpen(true)}
           onOpenSearchCpf={() => setCpfSearchOpen(true)}
+          onOpenContacts={() => setContactsOpen(true)}
+          onOpenClientWithCpf={handleOpenClientWithCpf}
         />
 
         <main className="flex-1 min-w-0 w-full overflow-x-hidden">
@@ -108,6 +117,14 @@ const MainContent: React.FC = () => {
       <ReportsModal isOpen={reportsOpen} onClose={() => setReportsOpen(false)} />
       <SqlSchemaViewer isOpen={sqlViewerOpen} onClose={() => setSqlViewerOpen(false)} />
       <ClientCpfSearchModal isOpen={cpfSearchOpen} onClose={() => setCpfSearchOpen(false)} />
+      <ClientContactsModal
+        isOpen={contactsOpen}
+        onClose={() => setContactsOpen(false)}
+        onSelectClient={(cliente) => {
+          setContactsOpen(false);
+          setCpfSearchOpen(true);
+        }}
+      />
     </div>
   );
 };

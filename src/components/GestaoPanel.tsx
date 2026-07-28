@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { apiStore } from '../lib/supabase';
 import {
@@ -33,6 +33,20 @@ export const GestaoPanel: React.FC = () => {
   const gestoraNome = auth.staffActive?.nome || 'Dra. Cristiane';
 
   const [timePeriod, setTimePeriod] = useState<'semana' | 'mes' | 'ano'>('mes');
+  const [, setRefreshTick] = useState(0);
+
+  // Live real-time update listener & poller
+  useEffect(() => {
+    const trigger = () => setRefreshTick((prev) => prev + 1);
+    window.addEventListener('indica_data_updated', trigger);
+    window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', trigger);
+      window.removeEventListener('storage', trigger);
+      clearInterval(timer);
+    };
+  }, []);
 
   // DATA
   const clientes = apiStore.getClientes();
