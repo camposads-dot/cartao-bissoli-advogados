@@ -135,14 +135,14 @@ export const ComercialPanel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
           <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 mb-1 border border-indigo-200 dark:border-indigo-800">
             Setor Comercial
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
             Painel Comercial de Atendimento
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -150,16 +150,16 @@ export const ComercialPanel: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={() => setCpfModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs flex items-center space-x-2 shadow-md transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer"
           >
             <UserCheck className="w-4 h-4 text-slate-950" />
             <span>Pesquisar Cliente por CPF</span>
           </button>
 
-          <div className="flex items-center space-x-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700">
+          <div className="w-full sm:w-auto flex items-center justify-around sm:justify-start space-x-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Indicações:</span>
               <strong className="text-slate-900 dark:text-white text-base font-light">{allIndicacoes.length}</strong>

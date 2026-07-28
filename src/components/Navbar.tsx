@@ -144,22 +144,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
   // INTERNAL STAFF NAVBAR (EQUIPE)
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors duration-200">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* BRAND / LOGO */}
-          <div className="flex items-center space-x-3 shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs">
-              <Building2 className="w-5 h-5" />
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs shrink-0">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-slate-900 dark:text-white leading-tight flex items-center gap-2">
-                Bissoli & Bissoli Advogados
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight flex flex-wrap items-center gap-1 sm:gap-2 truncate">
+                <span className="truncate">Bissoli & Bissoli</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
                   Painel da Equipe
                 </span>
               </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Sistema Interno de Gestão Comercial & CRM
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                Sistema Interno de Gestão & CRM
               </p>
             </div>
           </div>

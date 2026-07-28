@@ -215,15 +215,15 @@ export const AdminPanel: React.FC = () => {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
           <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 mb-1 border border-indigo-200 dark:border-indigo-800">
             <Crown className="w-3 h-3 text-amber-500" />
             <span>Painel Super Administrador</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
             Gestão do Sistema & Controle Geral
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -232,7 +232,7 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         {/* SUB TABS */}
-        <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1">
+        <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 gap-1 overflow-x-auto">
           <button
             onClick={() => setActiveTab('usuarios')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${

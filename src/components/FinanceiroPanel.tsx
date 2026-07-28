@@ -81,14 +81,14 @@ export const FinanceiroPanel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
           <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 mb-1 border border-emerald-200 dark:border-emerald-800">
             Setor Financeiro
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
             Painel Financeiro & Gestão de Cupons
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -97,7 +97,7 @@ export const FinanceiroPanel: React.FC = () => {
         </div>
 
         {/* METRICS SUMMARY */}
-        <div className="grid grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs w-full sm:w-auto">
           <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Valor Gerado</span>
             <strong className="text-slate-900 dark:text-white text-base font-light">R$ {totalValorGerado.toFixed(2)}</strong>

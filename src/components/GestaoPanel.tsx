@@ -97,14 +97,14 @@ export const GestaoPanel: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-8">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
           <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 mb-1 border border-indigo-200 dark:border-indigo-800">
             Painel Executivo de Gestão
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
             Dashboard da Gestão Geral
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -113,12 +113,12 @@ export const GestaoPanel: React.FC = () => {
         </div>
 
         {/* TIME PERIOD SELECTOR */}
-        <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
           {(['semana', 'mes', 'ano'] as const).map((p) => (
             <button
               key={p}
               onClick={() => setTimePeriod(p)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+              className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
                 timePeriod === p
                   ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-600 dark:text-slate-400'
@@ -131,20 +131,20 @@ export const GestaoPanel: React.FC = () => {
       </div>
 
       {/* KPIS CARDS GRID */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 sm:gap-4">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Clientes Totais</p>
-          <p className="text-2xl font-light text-slate-900 dark:text-white">{totalClientes}</p>
+          <p className="text-xl sm:text-2xl font-light text-slate-900 dark:text-white">{totalClientes}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Indicações</p>
-          <p className="text-2xl font-light text-indigo-600 dark:text-indigo-400">{totalIndicacoes}</p>
+          <p className="text-xl sm:text-2xl font-light text-indigo-600 dark:text-indigo-400">{totalIndicacoes}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Contratos Fechados</p>
-          <p className="text-2xl font-light text-emerald-600 dark:text-emerald-400">{totalContratos}</p>
+          <p className="text-xl sm:text-2xl font-light text-emerald-600 dark:text-emerald-400">{totalContratos}</p>
         </div>
 
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
