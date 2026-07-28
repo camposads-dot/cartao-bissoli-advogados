@@ -71,7 +71,7 @@ const MainContent: React.FC = () => {
       {/* FOOTER (EXCLUSIVO PARA ÁREA DA EQUIPE INTERNA) */}
       {auth.portalType === 'interno' && (
         <footer className="bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800 py-6 mt-12 transition-colors">
-          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-4">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-center sm:text-left">
               <Building2 className="w-4 h-4 text-amber-500 shrink-0" />
               <span className="font-semibold text-slate-700 dark:text-slate-300">

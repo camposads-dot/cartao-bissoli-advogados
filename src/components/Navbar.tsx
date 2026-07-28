@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
   if (auth.portalType === 'cliente') {
     return (
       <header className="sticky top-0 z-40 bg-[#0B192C]/95 backdrop-blur-md border-b border-amber-500/30 text-white shadow-lg transition-colors duration-200">
-        <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 gap-2">
             {/* OFFICE LOGO & BRAND */}
             <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReports, onOpenSqlViewer, 
   // INTERNAL STAFF NAVBAR (EQUIPE)
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors duration-200">
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* BRAND / LOGO */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">

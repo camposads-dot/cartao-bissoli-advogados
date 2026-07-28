@@ -188,13 +188,13 @@ export const ClientPortal: React.FC = () => {
   // IF NO CLIENT LOGGED IN -> EXCLUSIVE INSTITUTIONAL LANDING & LOGIN SCREEN
   if (!auth.clienteActive) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-3 sm:p-6 lg:p-10 relative overflow-x-hidden w-full max-w-full font-sans">
+      <div className="min-h-screen bg-gradient-to-b from-[#071325] via-[#0B192C] to-[#050C17] text-slate-100 flex flex-col justify-between p-3 sm:p-6 lg:p-8 xl:p-10 relative overflow-x-hidden w-full max-w-full font-sans">
         {/* BACKGROUND DECORATIVE GLOWS */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-[350px] bg-amber-500/10 blur-[120px] pointer-events-none rounded-full" />
         <div className="absolute bottom-0 right-0 w-[500px] max-w-full h-[300px] bg-blue-600/10 blur-[100px] pointer-events-none rounded-full" />
 
         {/* TOP BRAND HEADER (MOBILE/DESKTOP) */}
-        <div className="max-w-6xl mx-auto w-full pt-2 sm:pt-4 pb-2 relative z-10">
+        <div className="max-w-6xl xl:max-w-7xl mx-auto w-full pt-2 sm:pt-4 pb-2 relative z-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-amber-500/20 pb-4">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-[#0B192C]/90 rounded-xl border border-amber-400/40 shadow-lg shrink-0">
@@ -242,10 +242,10 @@ export const ClientPortal: React.FC = () => {
         </div>
 
         {/* MAIN DUAL COLUMN HERO (DESKTOP GRID / MOBILE STACK) */}
-        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-stretch my-auto py-4 relative z-10">
+        <div className="max-w-6xl xl:max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center my-auto py-6 relative z-10">
           
           {/* LEFT COLUMN: BRANDING, VISUAL CLIENT CARD & INSTITUTIONAL CARD */}
-          <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+          <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
             <div className="space-y-3">
               <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold tracking-wider bg-amber-400/15 text-amber-300 border border-amber-400/30 uppercase">
                 <Sparkles className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
@@ -458,7 +458,7 @@ export const ClientPortal: React.FC = () => {
         </div>
 
         {/* FOOTER COPYRIGHT */}
-        <div className="max-w-6xl mx-auto w-full pt-2 pb-2 relative z-10 text-center text-[11px] text-slate-400 border-t border-slate-800/80">
+        <div className="max-w-6xl xl:max-w-7xl mx-auto w-full pt-2 pb-2 relative z-10 text-center text-[11px] text-slate-400 border-t border-slate-800/80">
           <p>© {new Date().getFullYear()} Bissoli & Bissoli Advogados Associados. Todos os direitos reservados.</p>
         </div>
       </div>
@@ -466,7 +466,7 @@ export const ClientPortal: React.FC = () => {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8 w-full max-w-full overflow-x-hidden">
       {/* WELCOME HEADER */}
       <div className="bg-[#0F172A] rounded-2xl p-5 sm:p-8 text-white shadow-xs relative overflow-hidden border border-slate-800">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 relative z-10">
