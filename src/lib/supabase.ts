@@ -144,6 +144,17 @@ export function initLocalStore() {
   }
 }
 
+// BROADCAST CHANNEL FOR CROSS-TAB / MULTI-WINDOW REAL-TIME SYNC
+const bc = typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('indica_channel') : null;
+
+if (bc) {
+  bc.onmessage = (event) => {
+    if (event.data && event.data.type === 'indica_data_updated') {
+      window.dispatchEvent(new CustomEvent('indica_data_updated', { detail: event.data }));
+    }
+  };
+}
+
 // STORAGE READ/WRITE HELPERS
 export function getStoreData<T>(key: string): T {
   initLocalStore();
@@ -155,6 +166,11 @@ export function setStoreData<T>(key: string, data: T): void {
   localStorage.setItem(key, JSON.stringify(data));
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('indica_data_updated', { detail: { key } }));
+    if (bc) {
+      try {
+        bc.postMessage({ type: 'indica_data_updated', key });
+      } catch {}
+    }
   }
 }
 
