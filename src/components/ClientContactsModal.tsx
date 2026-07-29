@@ -54,9 +54,11 @@ export const ClientContactsModal: React.FC<ClientContactsModalProps> = ({
     const trigger = () => setRefreshTick((prev) => prev + 1);
     window.addEventListener('indica_data_updated', trigger);
     window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
     return () => {
       window.removeEventListener('indica_data_updated', trigger);
       window.removeEventListener('storage', trigger);
+      clearInterval(timer);
     };
   }, []);
 

@@ -19,8 +19,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [portalType, setPortalType] = useState<'cliente' | 'interno'>('cliente');
-  const [clienteActive, setClienteActive] = useState<Cliente | null>(null);
+  const [clienteActive, setClienteActive] = useState<Cliente | null>(() => {
+    const saved = localStorage.getItem('indica_active_cliente');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   const [staffActive, setStaffActive] = useState<UsuarioInterno | null>(() => {
     const saved = localStorage.getItem('indica_active_staff');
@@ -34,8 +43,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return null;
   });
 
+  const [portalType, setPortalType] = useState<'cliente' | 'interno'>(() => {
+    const savedType = localStorage.getItem('indica_portal_type');
+    if (savedType === 'interno' || savedType === 'cliente') {
+      return savedType;
+    }
+    const savedStaff = localStorage.getItem('indica_active_staff');
+    if (savedStaff) return 'interno';
+    const savedCliente = localStorage.getItem('indica_active_cliente');
+    if (savedCliente) return 'cliente';
+    return 'cliente';
+  });
+
   const [, setTick] = useState(0);
   const refreshData = () => setTick((t) => t + 1);
+
+  // Live real-time event listener for storage and data updates
+  useEffect(() => {
+    const handleSync = () => {
+      setTick((t) => t + 1);
+      const savedType = localStorage.getItem('indica_portal_type');
+      if (savedType === 'interno' || savedType === 'cliente') {
+        setPortalType(savedType);
+      }
+      const savedCliente = localStorage.getItem('indica_active_cliente');
+      if (savedCliente) {
+        try {
+          const parsed = JSON.parse(savedCliente);
+          setClienteActive(parsed);
+        } catch {}
+      }
+      const savedStaff = localStorage.getItem('indica_active_staff');
+      if (savedStaff) {
+        try {
+          const parsed = JSON.parse(savedStaff);
+          setStaffActive(parsed);
+        } catch {}
+      }
+    };
+
+    window.addEventListener('indica_data_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    const timer = setInterval(handleSync, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('indica_portal_type', portalType);
+  }, [portalType]);
 
   useEffect(() => {
     if (clienteActive) {
@@ -87,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setClienteActive(null);
     setPortalType('cliente');
     localStorage.removeItem('indica_active_cliente');
+    localStorage.removeItem('indica_portal_type');
   };
 
   const loginStaffByEmail = (email: string): UsuarioInterno | null => {
@@ -136,7 +196,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logoutStaff = () => {
     setStaffActive(null);
+    setPortalType('cliente');
     localStorage.removeItem('indica_active_staff');
+    localStorage.removeItem('indica_portal_type');
   };
 
   return (

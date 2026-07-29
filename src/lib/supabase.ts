@@ -179,9 +179,8 @@ export const apiStore = {
         existing.nome = cliente.nome;
         updated = true;
       }
-      if (updated) {
-        setStoreData(STORAGE_KEYS.CLIENTES, clientes);
-      }
+      // Always broadcast event so all components reload latest state
+      setStoreData(STORAGE_KEYS.CLIENTES, clientes);
       return existing;
     }
 
@@ -295,6 +294,15 @@ export const apiStore = {
 
   getIndicacoes: (): Indicacao[] => getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES),
   saveIndicacao: (indicacao: Omit<Indicacao, 'id' | 'criadoEm' | 'atualizadoEm' | 'status'>): Indicacao => {
+    // Ensure client is present in CLIENTES store
+    if (indicacao.clienteCpf && indicacao.clienteNome) {
+      apiStore.saveCliente({
+        nome: indicacao.clienteNome,
+        cpf: indicacao.clienteCpf,
+        telefone: '(00) 00000-0000',
+      });
+    }
+
     const indicacoes = apiStore.getIndicacoes();
     const config = apiStore.getConfig();
     const newIndicacao: Indicacao = {

@@ -31,6 +31,20 @@ export const ClientCpfSearchModal: React.FC<ClientCpfSearchModalProps> = ({
   const auth = useAuth();
   const [cpfSearch, setCpfSearch] = useState('');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
+  const [, setRefreshTick] = useState(0);
+
+  // Live real-time update listener & poller
+  React.useEffect(() => {
+    const trigger = () => setRefreshTick((prev) => prev + 1);
+    window.addEventListener('indica_data_updated', trigger);
+    window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', trigger);
+      window.removeEventListener('storage', trigger);
+      clearInterval(timer);
+    };
+  }, []);
 
   if (!isOpen) return null;
 

@@ -71,7 +71,10 @@ export const ComercialPanel: React.FC = () => {
       (searchClean.length > 0 && ind.clienteCpf && ind.clienteCpf.replace(/\D/g, '').includes(searchClean));
 
     const matchStatus = selectedStatus === 'todos' || ind.status === selectedStatus;
-    const matchTipo = selectedTipoAcao === 'todos' || ind.tipoAcaoId === selectedTipoAcao;
+    const matchTipo =
+      selectedTipoAcao === 'todos' ||
+      ind.tipoAcaoId === selectedTipoAcao ||
+      (ind.tipoAcaoNome && ind.tipoAcaoNome.toLowerCase() === selectedTipoAcao.toLowerCase());
 
     return matchSearch && matchStatus && matchTipo;
   });
