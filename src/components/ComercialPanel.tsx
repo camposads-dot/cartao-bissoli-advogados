@@ -57,12 +57,18 @@ export const ComercialPanel: React.FC = () => {
 
   // FILTERED DATA
   const filteredIndicacoes = allIndicacoes.filter((ind) => {
+    const term = searchTerm.toLowerCase().trim();
+    const searchClean = searchTerm.replace(/\D/g, '');
+
     const matchSearch =
-      ind.nomeIndicado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ind.cpfIndicado.includes(searchTerm) ||
-      ind.telefoneIndicado.includes(searchTerm) ||
-      (ind.clienteNome && ind.clienteNome.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (ind.clienteCpf && ind.clienteCpf.includes(searchTerm));
+      !term ||
+      ind.nomeIndicado.toLowerCase().includes(term) ||
+      ind.cpfIndicado.includes(term) ||
+      (searchClean.length > 0 && ind.cpfIndicado.replace(/\D/g, '').includes(searchClean)) ||
+      ind.telefoneIndicado.includes(term) ||
+      (ind.clienteNome && ind.clienteNome.toLowerCase().includes(term)) ||
+      (ind.clienteCpf && ind.clienteCpf.includes(term)) ||
+      (searchClean.length > 0 && ind.clienteCpf && ind.clienteCpf.replace(/\D/g, '').includes(searchClean));
 
     const matchStatus = selectedStatus === 'todos' || ind.status === selectedStatus;
     const matchTipo = selectedTipoAcao === 'todos' || ind.tipoAcaoId === selectedTipoAcao;

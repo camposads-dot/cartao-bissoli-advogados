@@ -12,12 +12,19 @@ import {
   AlertTriangle,
   Receipt,
   Tag,
+  Users,
+  FileText,
+  Sparkles,
+  XCircle,
 } from 'lucide-react';
-import { Cliente, Cupom } from '../types';
+import { Cliente, Cupom, Indicacao, StatusIndicacao } from '../types';
 
 export const FinanceiroPanel: React.FC = () => {
   const auth = useAuth();
   const gestoraNome = auth.staffActive?.nome || 'Letícia';
+
+  // ACTIVE VIEW TAB IN FINANCEIRO
+  const [activeTab, setActiveTab] = useState<'cupons' | 'indicacoes'>('cupons');
 
   // SEARCH CLIENT BY CPF OR NAME
   const [searchCpf, setSearchCpf] = useState('');
@@ -49,13 +56,32 @@ export const FinanceiroPanel: React.FC = () => {
   const indicacoes = apiStore.getIndicacoes();
 
   // FILTERED CUPONS BY SEARCH OR SELECTED CLIENTE
+  const searchClean = searchCpf.replace(/\D/g, '');
+
   const filteredCupons = cupons.filter((c) => {
-    if (!searchCpf) return true;
+    if (!searchCpf.trim()) return true;
     const term = searchCpf.toLowerCase().trim();
     return (
       (c.clienteNome && c.clienteNome.toLowerCase().includes(term)) ||
       (c.clienteCpf && c.clienteCpf.includes(term)) ||
-      c.codigo.toLowerCase().includes(term)
+      (searchClean.length > 0 && c.clienteCpf && c.clienteCpf.replace(/\D/g, '').includes(searchClean)) ||
+      c.codigo.toLowerCase().includes(term) ||
+      (c.nomeIndicado && c.nomeIndicado.toLowerCase().includes(term))
+    );
+  });
+
+  // FILTERED INDICAÇÕES BY SEARCH CPF OR NAME
+  const filteredIndicacoes = indicacoes.filter((ind) => {
+    if (!searchCpf.trim()) return true;
+    const term = searchCpf.toLowerCase().trim();
+    return (
+      ind.nomeIndicado.toLowerCase().includes(term) ||
+      ind.cpfIndicado.includes(term) ||
+      (searchClean.length > 0 && ind.cpfIndicado.replace(/\D/g, '').includes(searchClean)) ||
+      (ind.clienteNome && ind.clienteNome.toLowerCase().includes(term)) ||
+      (ind.clienteCpf && ind.clienteCpf.includes(term)) ||
+      (searchClean.length > 0 && ind.clienteCpf && ind.clienteCpf.replace(/\D/g, '').includes(searchClean)) ||
+      (ind.tipoAcaoNome && ind.tipoAcaoNome.toLowerCase().includes(term))
     );
   });
 
@@ -91,6 +117,50 @@ export const FinanceiroPanel: React.FC = () => {
       auth.refreshData();
     } catch (err: any) {
       alert(err.message || 'Erro ao abater cupom.');
+    }
+  };
+
+  const getStatusBadge = (status: StatusIndicacao) => {
+    switch (status) {
+      case 'Recebida':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            <Clock className="w-3 h-3 mr-1 text-slate-500" />
+            Recebida
+          </span>
+        );
+      case 'Em Atendimento':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+            <Clock className="w-3 h-3 mr-1 text-blue-500" />
+            Em Atendimento
+          </span>
+        );
+      case 'Qualificada':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+            <Sparkles className="w-3 h-3 mr-1 text-purple-500" />
+            Qualificada
+          </span>
+        );
+      case 'Desqualificada':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300">
+            <XCircle className="w-3 h-3 mr-1 text-rose-500" />
+            Desqualificada
+          </span>
+        );
+      case 'Contrato Fechado':
+      case 'Cupom Gerado':
+      case 'Cupom Utilizado':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+            <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-500" />
+            Contrato Fechado
+          </span>
+        );
+      default:
+        return null;
     }
   };
 
@@ -185,164 +255,284 @@ export const FinanceiroPanel: React.FC = () => {
         </div>
       )}
 
-      {/* COUPONS TABLE */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Tag className="w-5 h-5 text-emerald-500" />
-            Lista de Cupons de Recompensa ({filteredCupons.length})
-          </h3>
-        </div>
+      {/* VIEW TABS SELECTOR */}
+      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('cupons')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 cursor-pointer ${
+            activeTab === 'cupons'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+          }`}
+        >
+          <Tag className="w-4 h-4" />
+          <span>Cupons de Recompensa ({filteredCupons.length})</span>
+        </button>
 
-        {/* DESKTOP TABLE */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-            <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-700">
-              <tr>
-                <th className="py-3.5 px-4">Código</th>
-                <th className="py-3.5 px-4">Cliente Beneficiário</th>
-                <th className="py-3.5 px-4">Valor</th>
-                <th className="py-3.5 px-4">Origem / Indicado</th>
-                <th className="py-3.5 px-4">Data Geração</th>
-                <th className="py-3.5 px-4">Status</th>
-                <th className="py-3.5 px-4 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {filteredCupons.length === 0 ? (
+        <button
+          onClick={() => setActiveTab('indicacoes')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 shrink-0 cursor-pointer ${
+            activeTab === 'indicacoes'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>Lista de Indicações Cadastradas ({filteredIndicacoes.length})</span>
+        </button>
+      </div>
+
+      {/* SECTION 1: COUPONS TABLE */}
+      {activeTab === 'cupons' && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Tag className="w-5 h-5 text-emerald-500" />
+              Lista de Cupons de Recompensa ({filteredCupons.length})
+            </h3>
+          </div>
+
+          {/* DESKTOP TABLE */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400">
-                    Nenhum cupom localizado.
-                  </td>
+                  <th className="py-3.5 px-4">Código</th>
+                  <th className="py-3.5 px-4">Cliente Beneficiário</th>
+                  <th className="py-3.5 px-4">Valor</th>
+                  <th className="py-3.5 px-4">Origem / Indicado</th>
+                  <th className="py-3.5 px-4">Data Geração</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4 text-right">Ação</th>
                 </tr>
-              ) : (
-                filteredCupons.map((cupom) => (
-                  <tr key={cupom.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {filteredCupons.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-slate-400">
+                      Nenhum cupom localizado.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCupons.map((cupom) => (
+                    <tr key={cupom.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                        {cupom.codigo}
+                      </td>
+                      <td className="py-3.5 px-4 font-medium text-slate-800 dark:text-slate-200">
+                        <div>{cupom.clienteNome}</div>
+                        <div className="text-[10px] text-slate-400">CPF: {cupom.clienteCpf}</div>
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm">
+                        R$ {cupom.valor.toFixed(2)}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
+                        {cupom.nomeIndicado || 'Indicação Aprovada'}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500">
+                        {new Date(cupom.dataGeracao).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {cupom.status === 'Disponivel' ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            Disponível
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                            Utilizado em {cupom.dataUso ? new Date(cupom.dataUso).toLocaleDateString('pt-BR') : ''}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        {cupom.status === 'Disponivel' ? (
+                          <button
+                            onClick={() => {
+                              setSelectedCupom(cupom);
+                              setValorAbatidoInput(cupom.valor);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-xs"
+                          >
+                            Abater Cupom
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 font-medium italic">
+                            Abatido por {cupom.responsavelAbateNome}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBILE CARDS */}
+          <div className="block md:hidden p-4 space-y-3">
+            {filteredCupons.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 text-xs">
+                Nenhum cupom localizado.
+              </div>
+            ) : (
+              filteredCupons.map((cupom) => (
+                <div
+                  key={cupom.id}
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-sm text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-700/80 px-2.5 py-0.5 rounded-md">
                       {cupom.codigo}
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-800 dark:text-slate-200">
-                      <div>{cupom.clienteNome}</div>
-                      <div className="text-[10px] text-slate-400">CPF: {cupom.clienteCpf}</div>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm">
-                      R$ {cupom.valor.toFixed(2)}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400">
-                      {cupom.nomeIndicado || 'Indicação Aprovada'}
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-500">
-                      {new Date(cupom.dataGeracao).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className="py-3.5 px-4">
+                    </span>
+                    <div>
                       {cupom.status === 'Disponivel' ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
                           Disponível
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                          Utilizado em {cupom.dataUso ? new Date(cupom.dataUso).toLocaleDateString('pt-BR') : ''}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                          Utilizado
                         </span>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      {cupom.status === 'Disponivel' ? (
-                        <button
-                          onClick={() => {
-                            setSelectedCupom(cupom);
-                            setValorAbatidoInput(cupom.valor);
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-colors shadow-xs"
-                        >
-                          Abater Cupom
-                        </button>
-                      ) : (
-                        <span className="text-[11px] text-slate-400 font-medium italic">
-                          Abatido por {cupom.responsavelAbateNome}
-                        </span>
-                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-baseline">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Cliente:
+                      </span>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                        {cupom.clienteNome}
+                      </h4>
+                      <p className="text-[10px] text-slate-400">CPF: {cupom.clienteCpf}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                        Valor Recompensa:
+                      </span>
+                      <strong className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
+                        R$ {cupom.valor.toFixed(2)}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-500 border-t border-slate-200/60 dark:border-slate-700/60 pt-2 flex justify-between">
+                    <span>Indicado: <strong>{cupom.nomeIndicado || 'Geral'}</strong></span>
+                    <span>{new Date(cupom.dataGeracao).toLocaleDateString('pt-BR')}</span>
+                  </div>
+
+                  {cupom.status === 'Disponivel' ? (
+                    <button
+                      onClick={() => {
+                        setSelectedCupom(cupom);
+                        setValorAbatidoInput(cupom.valor);
+                      }}
+                      className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs text-center shadow-xs"
+                    >
+                      Abater Valor em Honorários
+                    </button>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 italic text-center">
+                      Abatido por {cupom.responsavelAbateNome}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 2: INDICATIONS TABLE (FINANCEIRO VIEW) */}
+      {activeTab === 'indicacoes' && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-500" />
+              Todas as Indicações no Sistema ({filteredIndicacoes.length})
+            </h3>
+          </div>
+
+          {/* DESKTOP TABLE */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 uppercase tracking-wider font-bold border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="py-3.5 px-4">Indicado</th>
+                  <th className="py-3.5 px-4">Cliente Indicador</th>
+                  <th className="py-3.5 px-4">Tipo de Ação</th>
+                  <th className="py-3.5 px-4">Data Registro</th>
+                  <th className="py-3.5 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                {filteredIndicacoes.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-8 text-center text-slate-400">
+                      Nenhuma indicação localizada com o filtro informado.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* MOBILE CARDS */}
-        <div className="block md:hidden p-4 space-y-3">
-          {filteredCupons.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 text-xs">
-              Nenhum cupom localizado.
-            </div>
-          ) : (
-            filteredCupons.map((cupom) => (
-              <div
-                key={cupom.id}
-                className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-sm text-slate-900 dark:text-white bg-slate-200/80 dark:bg-slate-700/80 px-2.5 py-0.5 rounded-md">
-                    {cupom.codigo}
-                  </span>
-                  <div>
-                    {cupom.status === 'Disponivel' ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
-                        Disponível
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                        Utilizado
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-baseline">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Cliente:
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                      {cupom.clienteNome}
-                    </h4>
-                    <p className="text-[10px] text-slate-400">CPF: {cupom.clienteCpf}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      Valor Recompensa:
-                    </span>
-                    <strong className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
-                      R$ {cupom.valor.toFixed(2)}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="text-xs text-slate-500 border-t border-slate-200/60 dark:border-slate-700/60 pt-2 flex justify-between">
-                  <span>Indicado: <strong>{cupom.nomeIndicado || 'Geral'}</strong></span>
-                  <span>{new Date(cupom.dataGeracao).toLocaleDateString('pt-BR')}</span>
-                </div>
-
-                {cupom.status === 'Disponivel' ? (
-                  <button
-                    onClick={() => {
-                      setSelectedCupom(cupom);
-                      setValorAbatidoInput(cupom.valor);
-                    }}
-                    className="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs text-center shadow-xs"
-                  >
-                    Abater Valor em Honorários
-                  </button>
                 ) : (
-                  <p className="text-[11px] text-slate-400 italic text-center">
-                    Abatido por {cupom.responsavelAbateNome}
-                  </p>
+                  filteredIndicacoes.map((ind) => (
+                    <tr key={ind.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                      <td className="py-3.5 px-4">
+                        <div className="font-bold text-slate-900 dark:text-white">{ind.nomeIndicado}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">CPF: {ind.cpfIndicado} | Tel: {ind.telefoneIndicado}</div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <div className="font-medium text-slate-800 dark:text-slate-200">{ind.clienteNome}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">CPF: {ind.clienteCpf}</div>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+                        {ind.tipoAcaoNome || 'Geral'}
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500">
+                        {new Date(ind.criadoEm).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        {getStatusBadge(ind.status)}
+                      </td>
+                    </tr>
+                  ))
                 )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBILE CARDS */}
+          <div className="block md:hidden p-4 space-y-3">
+            {filteredIndicacoes.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 text-xs">
+                Nenhuma indicação localizada.
               </div>
-            ))
-          )}
+            ) : (
+              filteredIndicacoes.map((ind) => (
+                <div
+                  key={ind.id}
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      {ind.nomeIndicado}
+                    </h4>
+                    {getStatusBadge(ind.status)}
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    CPF: {ind.cpfIndicado} | Tel: {ind.telefoneIndicado}
+                  </p>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 border-t border-slate-200 dark:border-slate-700 pt-2">
+                    Indicado por: <strong>{ind.clienteNome}</strong> (CPF: {ind.clienteCpf})
+                  </div>
+                  <div className="flex justify-between text-[11px] text-slate-500 pt-1">
+                    <span>Ação: {ind.tipoAcaoNome || 'Geral'}</span>
+                    <span>{new Date(ind.criadoEm).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ABATER CUPOM MODAL */}
       {selectedCupom && (

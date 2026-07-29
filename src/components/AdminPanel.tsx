@@ -31,6 +31,20 @@ export const AdminPanel: React.FC = () => {
   const auth = useAuth();
 
   const [activeTab, setActiveTab] = useState<'usuarios' | 'tipos_acao' | 'configuracoes' | 'logs' | 'backups'>('usuarios');
+  const [, setRefreshTick] = useState(0);
+
+  // Live real-time update listener & poller
+  React.useEffect(() => {
+    const trigger = () => setRefreshTick((prev) => prev + 1);
+    window.addEventListener('indica_data_updated', trigger);
+    window.addEventListener('storage', trigger);
+    const timer = setInterval(trigger, 2000);
+    return () => {
+      window.removeEventListener('indica_data_updated', trigger);
+      window.removeEventListener('storage', trigger);
+      clearInterval(timer);
+    };
+  }, []);
 
   // EDIT USER STATE
   const [editingUser, setEditingUser] = useState<UsuarioInterno | null>(null);
