@@ -160,7 +160,54 @@ export function setStoreData<T>(key: string, data: T): void {
 
 // DATA MANAGEMENT API
 export const apiStore = {
-  getClientes: (): Cliente[] => getStoreData<Cliente[]>(STORAGE_KEYS.CLIENTES),
+  getClientes: (): Cliente[] => {
+    const clientes = getStoreData<Cliente[]>(STORAGE_KEYS.CLIENTES);
+    const indicacoes = getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES);
+    const cupons = getStoreData<Cupom[]>(STORAGE_KEYS.CUPONS);
+    let updated = false;
+
+    const syncClient = (cpfRaw?: string, nomeRaw?: string, clienteId?: string, criadoEm?: string) => {
+      if (!cpfRaw) return;
+      const cleanCpf = cpfRaw.replace(/\D/g, '');
+      if (!cleanCpf) return;
+
+      const formattedCpf =
+        cleanCpf.length === 11
+          ? `${cleanCpf.slice(0, 3)}.${cleanCpf.slice(3, 6)}.${cleanCpf.slice(6, 9)}-${cleanCpf.slice(9)}`
+          : cpfRaw;
+
+      const idx = clientes.findIndex((c) => c.cpf.replace(/\D/g, '') === cleanCpf);
+      if (idx === -1) {
+        clientes.push({
+          id: clienteId || 'c_' + Math.random().toString(36).substring(2, 9),
+          nome: nomeRaw && nomeRaw.trim() ? nomeRaw.trim() : 'Cliente Não Identificado',
+          cpf: formattedCpf,
+          telefone: '(00) 00000-0000',
+          email: `${cleanCpf}@cliente.adv.br`,
+          criadoEm: criadoEm || new Date().toISOString(),
+        });
+        updated = true;
+      } else {
+        if (nomeRaw && nomeRaw.trim() && (clientes[idx].nome === 'Cliente Não Identificado' || !clientes[idx].nome)) {
+          clientes[idx].nome = nomeRaw.trim();
+          updated = true;
+        }
+      }
+    };
+
+    for (const ind of indicacoes) {
+      syncClient(ind.clienteCpf, ind.clienteNome, ind.clienteId, ind.criadoEm);
+    }
+    for (const cup of cupons) {
+      syncClient(cup.clienteCpf, cup.clienteNome, cup.clienteId, cup.dataGeracao);
+    }
+
+    if (updated) {
+      setStoreData(STORAGE_KEYS.CLIENTES, clientes);
+    }
+
+    return clientes;
+  },
   saveCliente: (cliente: Omit<Cliente, 'id' | 'criadoEm'>): Cliente => {
     const clientes = apiStore.getClientes();
     const cleanCpf = cliente.cpf.replace(/\D/g, '');
@@ -181,6 +228,19 @@ export const apiStore = {
       }
       // Always broadcast event so all components reload latest state
       setStoreData(STORAGE_KEYS.CLIENTES, clientes);
+      if (updated) {
+        apiStore.addLog(
+          'Sistema',
+          'Cliente Atualizado',
+          `Dados do cliente ${existing.nome} (CPF: ${existing.cpf}) foram atualizados no sistema.`
+        );
+      } else {
+        apiStore.addLog(
+          'Sistema',
+          'Acesso de Cliente',
+          `Cliente ${existing.nome} (CPF: ${existing.cpf}) acessou a Área do Cliente.`
+        );
+      }
       return existing;
     }
 

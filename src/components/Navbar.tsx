@@ -50,6 +50,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [readNotifications, setReadNotifications] = useState<string[]>([]);
   const [, setRefreshTick] = useState(0);
 
+  // Live real-time toast alert state for collaborators
+  const [toastNotif, setToastNotif] = useState<{
+    id: string;
+    titulo: string;
+    descricao: string;
+    usuario: string;
+    data: string;
+    cpf: string;
+    tipo: string;
+  } | null>(null);
+
+  const [lastSeenLogId, setLastSeenLogId] = useState<string | null>(null);
+
   // Live real-time update listener & poller
   useEffect(() => {
     const trigger = () => setRefreshTick((prev) => prev + 1);
@@ -88,6 +101,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       tipo: log.acao.includes('Cliente') ? 'cliente' : 'indicacao',
     };
   });
+
+  // Check for new logs in real time and trigger toast alert for collaborators
+  useEffect(() => {
+    if (logs.length > 0) {
+      const topLog = logs[0];
+      if (lastSeenLogId && topLog.id !== lastSeenLogId) {
+        const matchingNotif = rawNotifications.find((n) => n.id === topLog.id);
+        if (matchingNotif && auth.portalType === 'interno') {
+          setToastNotif(matchingNotif);
+        }
+      } else if (!lastSeenLogId) {
+        setLastSeenLogId(topLog.id);
+      }
+      if (topLog.id !== lastSeenLogId) {
+        setLastSeenLogId(topLog.id);
+      }
+    }
+  }, [logs.length, logs[0]?.id, auth.portalType]);
 
   const notifications = rawNotifications.slice(0, 8);
   const unreadCount = notifications.filter((n) => !readNotifications.includes(n.id)).length;
@@ -459,6 +490,43 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* REAL-TIME FLOATING TOAST NOTIFICATION FOR COLABORADORES */}
+      {toastNotif && auth.portalType === 'interno' && (
+        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#0B192C] text-white p-4 rounded-2xl shadow-2xl border-2 border-amber-500/80 animate-in slide-in-from-bottom-5 duration-300">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center space-x-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
+              <Bell className="w-4 h-4 animate-bounce" />
+              <span>Notificação da Equipe em Tempo Real</span>
+            </div>
+            <button
+              onClick={() => setToastNotif(null)}
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="mt-2.5">
+            <h4 className="text-sm font-extrabold text-white leading-tight">{toastNotif.titulo}</h4>
+            <p className="text-xs text-slate-300 mt-1 leading-relaxed">{toastNotif.descricao}</p>
+          </div>
+          <div className="mt-3.5 flex items-center justify-between pt-2 border-t border-slate-800">
+            <span className="text-[10px] text-slate-400 font-medium">
+              Por: {toastNotif.usuario}
+            </span>
+            <button
+              onClick={() => {
+                const current = toastNotif;
+                setToastNotif(null);
+                handleNotificationClick(current);
+              }}
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-colors cursor-pointer shadow-xs"
+            >
+              Ver Detalhes / Cliente →
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
