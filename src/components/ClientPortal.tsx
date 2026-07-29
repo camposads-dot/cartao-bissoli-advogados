@@ -26,17 +26,26 @@ import {
   Check,
   ListFilter,
   UserCheck,
+  UserPlus,
 } from 'lucide-react';
 import { Indicacao, StatusIndicacao } from '../types';
 
 export const ClientPortal: React.FC = () => {
   const auth = useAuth();
 
-  // LOGIN STATE
+  // ACCESS MODE & LOGIN / CADASTRO STATE
+  const [accessMode, setAccessMode] = useState<'login' | 'cadastro'>('login');
   const [nomeInput, setNomeInput] = useState('');
   const [cpfInput, setCpfInput] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [notRegisteredError, setNotRegisteredError] = useState(false);
+
+  // CADASTRO FORM STATE
+  const [regNome, setRegNome] = useState('');
+  const [regCpf, setRegCpf] = useState('');
+  const [regTelefone, setRegTelefone] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regMsg, setRegMsg] = useState<{ type: 'success' | 'info' | 'error'; text: string; cliente?: any } | null>(null);
 
   // NEW INDICATION FORM STATE
   const [showNewModal, setShowNewModal] = useState(false);
@@ -126,35 +135,59 @@ export const ClientPortal: React.FC = () => {
 
   const handleClientLogin = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (failedAttempts >= 3) {
-      setLoginError('Fale com um de nossos atendentes no escritório para verificar seu acesso');
-      return;
-    }
+    setLoginError('');
+    setNotRegisteredError(false);
 
     if (!cpfInput || cpfInput.replace(/\D/g, '').length < 11) {
       setLoginError('Por favor, informe um CPF válido com 11 dígitos.');
       return;
     }
-    if (!nomeInput.trim()) {
-      setLoginError('Por favor, informe seu Nome completo.');
+
+    const res = auth.loginCliente(cpfInput);
+    if (!res.success) {
+      if (res.isNotRegistered) {
+        setNotRegisteredError(true);
+        setLoginError('CPF não cadastrado! Por favor, realize o seu cadastro antes de acessar o painel.');
+      } else {
+        setLoginError(res.message || 'Erro ao realizar acesso.');
+      }
+    } else {
+      auth.refreshData();
+    }
+  };
+
+  const handleClientRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegMsg(null);
+
+    if (!regNome.trim()) {
+      setRegMsg({ type: 'error', text: 'Por favor, informe seu Nome Completo.' });
+      return;
+    }
+    if (!regCpf || regCpf.replace(/\D/g, '').length < 11) {
+      setRegMsg({ type: 'error', text: 'Por favor, informe um CPF válido com 11 dígitos.' });
+      return;
+    }
+    if (!regTelefone.trim()) {
+      setRegMsg({ type: 'error', text: 'Por favor, informe seu Telefone / WhatsApp com DDD.' });
       return;
     }
 
-    setLoginError('');
-    const res = auth.loginCliente(nomeInput, cpfInput);
-    if (!res.success) {
-      const nextAttempts = failedAttempts + 1;
-      setFailedAttempts(nextAttempts);
-
-      if (nextAttempts >= 3) {
-        setLoginError('Fale com um de nossos atendentes no escritório para verificar seu acesso');
-      } else {
-        setLoginError('O CPF informado está cadastrado em outro nome. Por favor, coloque o nome corretamente.');
-      }
+    const res = auth.cadastrarCliente(regNome, regCpf, regTelefone, regEmail);
+    if (res.alreadyRegistered) {
+      setRegMsg({
+        type: 'info',
+        text: res.message || 'Você já possui um cadastro ativo!',
+        cliente: res.cliente,
+      });
+    } else if (res.success && res.cliente) {
+      setRegMsg({
+        type: 'success',
+        text: `Seja bem-vindo(a), ${res.cliente.nome}! Seu cadastro foi realizado com sucesso em nosso sistema.`,
+        cliente: res.cliente,
+      });
     } else {
-      setFailedAttempts(0);
-      auth.refreshData();
+      setRegMsg({ type: 'error', text: res.message || 'Erro ao realizar cadastro.' });
     }
   };
 
@@ -343,68 +376,295 @@ export const ClientPortal: React.FC = () => {
           </div>
 
           {/* ACCESS CARD FORM */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
-            <div className="mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">
-                Acesso à Área do Cliente
-              </h2>
-              <p className="text-[11px] sm:text-xs text-slate-600 mt-1 sm:mt-2 leading-relaxed">
-                Informe seu Nome e CPF para acessar seu painel de indicações. Seu cadastro será identificado de forma automática.
-              </p>
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl shadow-blue-950/40 border border-amber-500/20 text-slate-900">
+            {/* MODE TOGGLE TABS */}
+            <div className="flex rounded-xl bg-slate-100 p-1 mb-5 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setAccessMode('login');
+                  setLoginError('');
+                  setNotRegisteredError(false);
+                  setRegMsg(null);
+                }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  accessMode === 'login'
+                    ? 'bg-white text-blue-900 shadow-xs border border-slate-200'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Entrar no Meu Painel</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAccessMode('cadastro');
+                  setLoginError('');
+                  setNotRegisteredError(false);
+                  setRegMsg(null);
+                  if (cpfInput && !regCpf) setRegCpf(cpfInput);
+                  if (nomeInput && !regNome) setRegNome(nomeInput);
+                }}
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  accessMode === 'cadastro'
+                    ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <UserPlus className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                <span>Fazer Cadastro</span>
+              </button>
             </div>
 
-            <form onSubmit={handleClientLogin} className="space-y-3.5 sm:space-y-4">
-              <div>
-                <label className="block text-[11px] sm:text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Nome Completo *
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    required
-                    value={nomeInput}
-                    onChange={(e) => setNomeInput(e.target.value)}
-                    placeholder="Ex: João Pedro da Silva"
-                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-none transition-all"
-                  />
+            {accessMode === 'login' ? (
+              /* LOGIN FORM */
+              <form onSubmit={handleClientLogin} className="space-y-3.5">
+                <div>
+                  <h2 className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">
+                    Entrar no Meu Painel
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-slate-600 mt-1 leading-relaxed">
+                    Informe seu CPF cadastrado para acessar e acompanhar suas indicações.
+                  </p>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-[11px] sm:text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  CPF (Identificador Único) *
-                </label>
-                <div className="relative">
-                  <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    required
-                    value={cpfInput}
-                    onChange={(e) => handleCpfChange(e, setCpfInput)}
-                    placeholder="000.000.000-00"
-                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-none transition-all font-mono"
-                  />
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    CPF (Identificador Único) *
+                  </label>
+                  <div className="relative">
+                    <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      value={cpfInput}
+                      onChange={(e) => handleCpfChange(e, setCpfInput)}
+                      placeholder="000.000.000-00"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-indigo-600 focus:outline-none transition-all font-mono"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {loginError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
-                  <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
-                  <span>{loginError}</span>
+                {loginError && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
+                      <span className="font-medium">{loginError}</span>
+                    </div>
+                    {notRegisteredError && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRegCpf(cpfInput);
+                          if (nomeInput) setRegNome(nomeInput);
+                          setAccessMode('cadastro');
+                          setLoginError('');
+                          setNotRegisteredError(false);
+                        }}
+                        className="w-full py-2 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                        <span>Fazer Cadastro Agora</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* 1ST MAIN BUTTON: ENTRAR NO MEU PAINEL */}
+                <button
+                  type="submit"
+                  className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-[#1E3A8A] via-[#172E6F] to-[#0F285F] hover:from-[#172E6F] hover:to-[#0B1E48] text-white shadow-md border border-amber-400/30 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
+                >
+                  <span>Entrar no Meu Painel</span>
+                  <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform shrink-0" />
+                </button>
+
+                {/* 2ND BUTTON BELOW: FAZER CADASTRO */}
+                <div className="pt-3 border-t border-slate-100 text-center">
+                  <p className="text-[11px] text-slate-500 mb-2">
+                    Ainda não possui cadastro em nosso escritório?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegCpf(cpfInput);
+                      if (nomeInput) setRegNome(nomeInput);
+                      setAccessMode('cadastro');
+                      setLoginError('');
+                      setNotRegisteredError(false);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 border border-amber-600/30 shadow-xs flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4 text-slate-950 shrink-0" />
+                    <span>Fazer Cadastro</span>
+                  </button>
                 </div>
-              )}
+              </form>
+            ) : (
+              /* CADASTRO FORM */
+              <form onSubmit={handleClientRegister} className="space-y-3.5">
+                <div>
+                  <h2 className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">
+                    Fazer Cadastro de Cliente
+                  </h2>
+                  <p className="text-[11px] sm:text-xs text-slate-600 mt-1 leading-relaxed">
+                    Cadastre-se para acessar seu painel, realizar indicações e acumular cupons de desconto.
+                  </p>
+                </div>
 
-              <button
-                type="submit"
-                className="w-full py-3 sm:py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-[#1E3A8A] via-[#172E6F] to-[#0F285F] hover:from-[#172E6F] hover:to-[#0B1E48] text-white shadow-lg border border-amber-400/30 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
-              >
-                <span>Entrar no Meu Painel</span>
-                <ChevronRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </form>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Nome Completo *
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      value={regNome}
+                      onChange={(e) => setRegNome(e.target.value)}
+                      placeholder="Ex: João Pedro da Silva"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
 
-            {/* SECONDARY ACTION: COLLABORATOR LOGIN */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    CPF (Identificador Único) *
+                  </label>
+                  <div className="relative">
+                    <FileText className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      value={regCpf}
+                      onChange={(e) => handleCpfChange(e, setRegCpf)}
+                      placeholder="000.000.000-00"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      Telefone / WhatsApp *
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                      <input
+                        type="text"
+                        required
+                        value={regTelefone}
+                        onChange={(e) => setRegTelefone(e.target.value)}
+                        placeholder="(69) 90000-0000"
+                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                      E-mail (Opcional)
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                      <input
+                        type="email"
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="cliente@email.com"
+                        className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {regMsg && regMsg.type === 'error' && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-rose-500" />
+                    <span>{regMsg.text}</span>
+                  </div>
+                )}
+
+                {regMsg && regMsg.type === 'info' && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs text-amber-900 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <UserCheck className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                      <div>
+                        <p className="font-bold">Cadastro Já Identificado!</p>
+                        <p className="mt-0.5">{regMsg.text}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (regMsg.cliente) {
+                          auth.loginCliente(regMsg.cliente.nome, regMsg.cliente.cpf);
+                          auth.refreshData();
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 rounded-lg bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Entrar no Meu Painel Agora</span>
+                    </button>
+                  </div>
+                )}
+
+                {regMsg && regMsg.type === 'success' && (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-emerald-900">Cadastro Realizado com Sucesso!</p>
+                        <p className="mt-0.5">{regMsg.text}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (regMsg.cliente) {
+                          auth.loginCliente(regMsg.cliente.nome, regMsg.cliente.cpf);
+                          auth.refreshData();
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer"
+                    >
+                      <Check className="w-4 h-4 text-white shrink-0" />
+                      <span>Entrar no Meu Painel Agora</span>
+                    </button>
+                  </div>
+                )}
+
+                {(!regMsg || regMsg.type === 'error') && (
+                  <button
+                    type="submit"
+                    className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-slate-950 shadow-md border border-amber-400/40 transition-all flex items-center justify-center space-x-2 cursor-pointer group"
+                  >
+                    <UserPlus className="w-4 h-4 text-slate-950 shrink-0" />
+                    <span>Confirmar e Realizar Cadastro</span>
+                  </button>
+                )}
+
+                <div className="pt-2 border-t border-slate-100 text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccessMode('login');
+                      setRegMsg(null);
+                    }}
+                    className="text-xs font-semibold text-slate-600 hover:text-blue-900 underline cursor-pointer"
+                  >
+                    Já possui cadastro? Clique aqui para Entrar
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* 3RD ACCESS AREA: COLLABORATOR LOGIN */}
             <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col space-y-2">
               <button
                 type="button"
@@ -414,7 +674,7 @@ export const ClientPortal: React.FC = () => {
                 }}
                 className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center justify-center space-x-2 transition-colors cursor-pointer"
               >
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
                 <span>Acessar como colaborador</span>
               </button>
             </div>

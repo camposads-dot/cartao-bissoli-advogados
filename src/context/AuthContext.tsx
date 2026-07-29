@@ -7,7 +7,8 @@ interface AuthContextType {
   setPortalType: (type: 'cliente' | 'interno') => void;
   clienteActive: Cliente | null;
   staffActive: UsuarioInterno | null;
-  loginCliente: (nome: string, cpf: string) => { success: boolean; cliente?: Cliente; message?: string };
+  loginCliente: (param1: string, param2?: string) => { success: boolean; cliente?: Cliente; message?: string; isNotRegistered?: boolean };
+  cadastrarCliente: (nome: string, cpf: string, telefone?: string, email?: string) => { success: boolean; cliente?: Cliente; message?: string; alreadyRegistered?: boolean; isNew?: boolean };
   logoutCliente: () => void;
   loginStaffByEmail: (email: string) => UsuarioInterno | null;
   loginStaffWithCredentials: (email: string, password?: string) => { success: boolean; user?: UsuarioInterno; message?: string };
@@ -23,8 +24,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const saved = localStorage.getItem('indica_active_cliente');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed: Cliente = JSON.parse(saved);
+        const clientes = apiStore.getClientes();
+        const cleanCpf = parsed.cpf ? parsed.cpf.replace(/\D/g, '') : '';
+        const exists = clientes.some((c) => c.id === parsed.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
+        if (exists) return parsed;
+        localStorage.removeItem('indica_active_cliente');
+        return null;
       } catch {
+        localStorage.removeItem('indica_active_cliente');
         return null;
       }
     }
@@ -55,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return 'cliente';
   });
 
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const refreshData = () => setTick((t) => t + 1);
 
   // Live real-time event listener for storage and data updates
@@ -70,8 +78,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (savedCliente) {
         try {
           const parsed = JSON.parse(savedCliente);
-          setClienteActive(parsed);
-        } catch {}
+          const currentClientes = apiStore.getClientes();
+          const cleanCpf = parsed.cpf ? parsed.cpf.replace(/\D/g, '') : '';
+          const exists = currentClientes.some((c) => c.id === parsed.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
+          if (exists) {
+            setClienteActive(parsed);
+          } else {
+            setClienteActive(null);
+            localStorage.removeItem('indica_active_cliente');
+          }
+        } catch {
+          setClienteActive(null);
+          localStorage.removeItem('indica_active_cliente');
+        }
+      } else {
+        setClienteActive(null);
       }
       const savedStaff = localStorage.getItem('indica_active_staff');
       if (savedStaff) {
@@ -98,11 +119,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (clienteActive) {
-      localStorage.setItem('indica_active_cliente', JSON.stringify(clienteActive));
+      const currentClientes = apiStore.getClientes();
+      const cleanCpf = clienteActive.cpf ? clienteActive.cpf.replace(/\D/g, '') : '';
+      const exists = currentClientes.some((c) => c.id === clienteActive.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
+      if (exists) {
+        localStorage.setItem('indica_active_cliente', JSON.stringify(clienteActive));
+      } else {
+        setClienteActive(null);
+        localStorage.removeItem('indica_active_cliente');
+      }
     } else {
       localStorage.removeItem('indica_active_cliente');
     }
-  }, [clienteActive]);
+  }, [clienteActive, tick]);
 
   useEffect(() => {
     if (staffActive) {
@@ -113,33 +142,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [staffActive]);
 
   const loginCliente = (
-    nome: string,
-    cpfRaw: string
-  ): { success: boolean; cliente?: Cliente; message?: string } => {
+    param1: string,
+    param2?: string
+  ): { success: boolean; cliente?: Cliente; message?: string; isNotRegistered?: boolean } => {
+    const cpfRaw = param2 || param1;
     const cpfClean = cpfRaw.replace(/\D/g, '');
-    const formattedCpf =
-      cpfClean.length === 11
-        ? `${cpfClean.slice(0, 3)}.${cpfClean.slice(3, 6)}.${cpfClean.slice(6, 9)}-${cpfClean.slice(9)}`
-        : cpfRaw;
 
-    const trimmedNome = nome.trim() || 'Cliente Não Identificado';
+    if (cpfClean.length < 11) {
+      return { success: false, message: 'Por favor, informe um CPF válido com 11 dígitos.' };
+    }
 
-    try {
-      const cliente = apiStore.saveCliente({
-        nome: trimmedNome,
-        cpf: formattedCpf,
-        telefone: '(00) 00000-0000',
-      });
+    const clientes = apiStore.getClientes();
+    const existing = clientes.find((c) => c.cpf.replace(/\D/g, '') === cpfClean);
 
-      setClienteActive(cliente);
-      setPortalType('cliente');
-      return { success: true, cliente };
-    } catch (err: any) {
+    if (!existing) {
       return {
         success: false,
-        message: err.message || 'Erro ao realizar acesso com o CPF informado.',
+        isNotRegistered: true,
+        message: 'CPF não cadastrado. Por favor, realize seu cadastro antes de acessar o painel.',
       };
     }
+
+    // Update name if name provided and different
+    if (param2 && param1.trim() && param1.trim() !== 'Cliente Não Identificado') {
+      const inputName = param1.trim();
+      if (existing.nome !== inputName) {
+        existing.nome = inputName;
+        apiStore.saveCliente(existing);
+      }
+    }
+
+    setClienteActive(existing);
+    setPortalType('cliente');
+    return { success: true, cliente: existing };
+  };
+
+  const cadastrarCliente = (
+    nome: string,
+    cpfRaw: string,
+    telefone?: string,
+    email?: string
+  ): { success: boolean; cliente?: Cliente; message?: string; alreadyRegistered?: boolean; isNew?: boolean } => {
+    const cpfClean = cpfRaw.replace(/\D/g, '');
+    if (cpfClean.length < 11) {
+      return { success: false, message: 'Por favor, informe um CPF válido com 11 dígitos.' };
+    }
+    if (!nome.trim()) {
+      return { success: false, message: 'Por favor, informe seu Nome Completo.' };
+    }
+    if (!telefone || !telefone.trim()) {
+      return { success: false, message: 'Por favor, informe seu Telefone / WhatsApp.' };
+    }
+
+    const formattedCpf = `${cpfClean.slice(0, 3)}.${cpfClean.slice(3, 6)}.${cpfClean.slice(6, 9)}-${cpfClean.slice(9)}`;
+    const clientes = apiStore.getClientes();
+    const existing = clientes.find((c) => c.cpf.replace(/\D/g, '') === cpfClean);
+
+    if (existing) {
+      return {
+        success: false,
+        alreadyRegistered: true,
+        cliente: existing,
+        message: `O CPF ${formattedCpf} já possui um cadastro ativo em nome de ${existing.nome}.`,
+      };
+    }
+
+    const newCliente = apiStore.saveCliente({
+      nome: nome.trim(),
+      cpf: formattedCpf,
+      telefone: telefone && telefone.trim() ? telefone.trim() : '(00) 00000-0000',
+      email: email && email.trim() ? email.trim() : '',
+    });
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('indica_data_updated'));
+    }
+
+    setClienteActive(newCliente);
+    setPortalType('cliente');
+    return {
+      success: true,
+      isNew: true,
+      cliente: newCliente,
+      message: `Seja bem-vindo(a), ${newCliente.nome}! Seu cadastro foi realizado com sucesso.`,
+    };
   };
 
   const logoutCliente = () => {
@@ -209,6 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clienteActive,
         staffActive,
         loginCliente,
+        cadastrarCliente,
         logoutCliente,
         loginStaffByEmail,
         loginStaffWithCredentials,
