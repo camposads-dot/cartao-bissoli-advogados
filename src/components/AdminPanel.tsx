@@ -1010,10 +1010,10 @@ export const AdminPanel: React.FC = () => {
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Database className="w-5 h-5 text-indigo-600" />
-              Gestão de Backups e Dados do Sistema
+              Gestão de Backups e Armazenamento Local (localStorage)
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Gere backups em tempo real em formato JSON e restaure dados do sistema com permissão de SUPER_ADMIN.
+              Consulte e gerencie todos os registros armazenados no navegador deste dispositivo ou exporte/restaure backups em JSON.
             </p>
           </div>
 
@@ -1022,6 +1022,82 @@ export const AdminPanel: React.FC = () => {
               {backupMsg}
             </div>
           )}
+
+          {/* LOCALSTORAGE LIVE SUMMARY & INSPECTOR */}
+          <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 space-y-3 text-xs">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Resumo do Armazenamento Ativo no Navegador
+              </span>
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                localStorage Ativo
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                <span className="block text-[10px] text-slate-400 uppercase font-bold">Clientes</span>
+                <span className="text-lg font-extrabold text-slate-900 dark:text-white">
+                  {apiStore.getClientes().length}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                <span className="block text-[10px] text-slate-400 uppercase font-bold">Indicações</span>
+                <span className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">
+                  {apiStore.getIndicacoes().length}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                <span className="block text-[10px] text-slate-400 uppercase font-bold">Cupons</span>
+                <span className="text-lg font-extrabold text-amber-600 dark:text-amber-400">
+                  {apiStore.getCupons().length}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                <span className="block text-[10px] text-slate-400 uppercase font-bold">Usuários</span>
+                <span className="text-lg font-extrabold text-slate-700 dark:text-slate-300">
+                  {apiStore.getUsuarios().length}
+                </span>
+              </div>
+            </div>
+
+            <details className="mt-2 text-[11px] text-slate-600 dark:text-slate-400 cursor-pointer">
+              <summary className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline py-1">
+                🔍 Clique para inspecionar os detalhes brutos salvos no navegador (JSON)
+              </summary>
+              <pre className="mt-2 p-3 bg-slate-900 text-slate-200 rounded-xl overflow-x-auto text-[10px] font-mono max-h-60">
+                {JSON.stringify(
+                  {
+                    clientes: apiStore.getClientes(),
+                    indicacoes: apiStore.getIndicacoes(),
+                    cupons: apiStore.getCupons(),
+                    logs: apiStore.getLogs().slice(0, 5),
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </details>
+
+            <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Deseja realmente limpar TODOS os cadastros de clientes, indicações e cupons para iniciar novos testes do zero?')) {
+                    apiStore.limparRegistrosClientesEIndicacoes(auth.user?.nome || 'Super Admin');
+                    setBackupMsg('⚡ Limpeza realizada com sucesso! Todos os contatos e indicações foram zerados para novos testes.');
+                    setRefreshTick((prev) => prev + 1);
+                    setTimeout(() => setBackupMsg(''), 4000);
+                  }
+                }}
+                className="px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 font-bold text-xs flex items-center space-x-1.5 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Zeramento Completo (Limpar Contatos & Indicações para Teste)</span>
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-3">

@@ -57,203 +57,13 @@ const defaultUsuarios: UsuarioInterno[] = [
   { id: 'u4', nome: 'Dra. Cristiane', email: 'dra.cristiane@escritorio.adv.br', perfil: 'gestao', ativo: true, criadoEm: new Date().toISOString() },
 ];
 
-const defaultClientes: Cliente[] = [
-  {
-    id: 'c_maria',
-    nome: 'Maria Oliveira Costa',
-    cpf: '123.456.789-00',
-    telefone: '(11) 98765-4321',
-    email: 'maria.costa@gmail.com',
-    criadoEm: '2026-07-28T10:15:00.000Z',
-  },
-  {
-    id: 'c_joao',
-    nome: 'João Santos Ribeiro',
-    cpf: '987.654.321-11',
-    telefone: '(21) 99887-6655',
-    email: 'joao.ribeiro@hotmail.com',
-    criadoEm: '2026-07-28T11:30:00.000Z',
-  },
-  {
-    id: 'c_ana',
-    nome: 'Ana Paula Ferreira',
-    cpf: '456.789.012-33',
-    telefone: '(31) 99123-8877',
-    email: 'ana.ferreira@outlook.com',
-    criadoEm: '2026-07-28T14:20:00.000Z',
-  },
-  {
-    id: 'c_marcos',
-    nome: 'Marcos Antonio Pereira',
-    cpf: '321.654.987-44',
-    telefone: '(41) 98877-1122',
-    email: 'marcos.pereira@gmail.com',
-    criadoEm: '2026-07-29T08:10:00.000Z',
-  },
-];
+const defaultClientes: Cliente[] = [];
 
-const defaultIndicacoes: Indicacao[] = [
-  {
-    id: 'ind_01',
-    clienteId: 'c_maria',
-    clienteNome: 'Maria Oliveira Costa',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Carlos Eduardo Silva',
-    cpfIndicado: '234.567.890-11',
-    telefoneIndicado: '(11) 97654-3210',
-    tipoAcaoId: '1',
-    tipoAcaoNome: 'Previdenciário',
-    observacoes: 'Indicação feita pelo portal do cliente para aposentadoria por tempo de contribuição.',
-    status: 'Em Atendimento',
-    criadoEm: '2026-07-28T10:30:00.000Z',
-    atualizadoEm: '2026-07-28T10:45:00.000Z',
-    historico: [
-      {
-        id: 'h1',
-        indicacaoId: 'ind_01',
-        statusAnterior: 'Recebida',
-        statusNovo: 'Em Atendimento',
-        responsavelNome: 'Natan Campos',
-        observacao: 'Contato inicial realizado via WhatsApp com o indicado.',
-        criadoEm: '2026-07-28T10:45:00.000Z',
-      },
-      {
-        id: 'h0',
-        indicacaoId: 'ind_01',
-        statusAnterior: null,
-        statusNovo: 'Recebida',
-        responsavelNome: 'Maria Oliveira Costa',
-        observacao: 'Indicação cadastrada no Acesso de Cliente.',
-        criadoEm: '2026-07-28T10:30:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'ind_02',
-    clienteId: 'c_maria',
-    clienteNome: 'Maria Oliveira Costa',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Patricia Souza',
-    cpfIndicado: '345.678.901-22',
-    telefoneIndicado: '(11) 96543-2109',
-    tipoAcaoId: '2',
-    tipoAcaoNome: 'Trabalhista',
-    observacoes: 'Revisão de rescisão contratual e horas extras.',
-    status: 'Contrato Fechado',
-    criadoEm: '2026-07-28T11:00:00.000Z',
-    atualizadoEm: '2026-07-28T15:20:00.000Z',
-    historico: [
-      {
-        id: 'h2',
-        indicacaoId: 'ind_02',
-        statusAnterior: 'Em Atendimento',
-        statusNovo: 'Contrato Fechado',
-        responsavelNome: 'Natan Campos',
-        observacao: 'Contrato assinado. Cupom de recompensa liberado para a cliente.',
-        criadoEm: '2026-07-28T15:20:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'ind_03',
-    clienteId: 'c_joao',
-    clienteNome: 'João Santos Ribeiro',
-    clienteCpf: '987.654.321-11',
-    nomeIndicado: 'Fernanda Lima',
-    cpfIndicado: '567.890.123-44',
-    telefoneIndicado: '(21) 98712-3456',
-    tipoAcaoId: '4',
-    tipoAcaoNome: 'Família',
-    observacoes: 'Ação de pensão alimentícia e guarda compartilhada.',
-    status: 'Qualificada',
-    criadoEm: '2026-07-28T12:00:00.000Z',
-    atualizadoEm: '2026-07-28T14:10:00.000Z',
-    historico: [
-      {
-        id: 'h3',
-        indicacaoId: 'ind_03',
-        statusAnterior: 'Recebida',
-        statusNovo: 'Qualificada',
-        responsavelNome: 'Dra. Cristiane',
-        observacao: 'Documentação validada com sucesso pela equipe jurídica.',
-        criadoEm: '2026-07-28T14:10:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'ind_04',
-    clienteId: 'c_ana',
-    clienteNome: 'Ana Paula Ferreira',
-    clienteCpf: '456.789.012-33',
-    nomeIndicado: 'Roberto Alves',
-    cpfIndicado: '678.901.234-55',
-    telefoneIndicado: '(31) 99876-5432',
-    tipoAcaoId: '6',
-    tipoAcaoNome: 'Empresarial',
-    observacoes: 'Consultoria de reestruturação de contratos comerciais.',
-    status: 'Recebida',
-    criadoEm: '2026-07-28T14:30:00.000Z',
-    atualizadoEm: '2026-07-28T14:30:00.000Z',
-    historico: [
-      {
-        id: 'h4',
-        indicacaoId: 'ind_04',
-        statusAnterior: null,
-        statusNovo: 'Recebida',
-        responsavelNome: 'Ana Paula Ferreira',
-        observacao: 'Indicação enviada pelo Acesso de Cliente.',
-        criadoEm: '2026-07-28T14:30:00.000Z',
-      },
-    ],
-  },
-];
+const defaultIndicacoes: Indicacao[] = [];
 
-const defaultCupons: Cupom[] = [
-  {
-    id: 'cup_01',
-    codigo: 'CUP-M78129',
-    indicacaoId: 'ind_02',
-    clienteId: 'c_maria',
-    clienteNome: 'Maria Oliveira Costa',
-    clienteCpf: '123.456.789-00',
-    nomeIndicado: 'Patricia Souza',
-    valor: 600,
-    status: 'Disponivel',
-    dataGeracao: '2026-07-28T15:20:00.000Z',
-    responsavelValidacaoNome: 'Natan Campos',
-  },
-];
+const defaultCupons: Cupom[] = [];
 
-const defaultLogs: LogSistema[] = [
-  {
-    id: 'l_01',
-    usuarioNome: 'Maria Oliveira Costa',
-    acao: 'Acesso de Cliente',
-    detalhes: 'Cliente Maria Oliveira Costa (CPF: 123.456.789-00) acessou a Área do Cliente.',
-    criadoEm: '2026-07-28T10:15:00.000Z',
-  },
-  {
-    id: 'l_02',
-    usuarioNome: 'Maria Oliveira Costa',
-    acao: 'Nova Indicação Cadastrada',
-    detalhes: 'Indicação de Carlos Eduardo Silva para Previdenciário.',
-    criadoEm: '2026-07-28T10:30:00.000Z',
-  },
-  {
-    id: 'l_03',
-    usuarioNome: 'Maria Oliveira Costa',
-    acao: 'Nova Indicação Cadastrada',
-    detalhes: 'Indicação de Patricia Souza para Trabalhista.',
-    criadoEm: '2026-07-28T11:00:00.000Z',
-  },
-  {
-    id: 'l_04',
-    usuarioNome: 'Natan Campos',
-    acao: 'Contrato Fechado & Geração de Cupom',
-    detalhes: 'Contrato fechado para Patricia Souza. Cupom CUP-M78129 no valor de R$ 600.00 gerado para Maria Oliveira Costa.',
-    criadoEm: '2026-07-28T15:20:00.000Z',
-  },
-];
+const defaultLogs: LogSistema[] = [];
 
 const defaultConfig: ConfiguracaoSistema = {
   valorPadraoCupom: 500,
@@ -261,90 +71,31 @@ const defaultConfig: ConfiguracaoSistema = {
   permitirAutoCadastroCliente: true,
 };
 
-// INITIALIZE LOCAL STORAGE WITH SEED & AUTO MERGE
+// INITIALIZE LOCAL STORAGE (PRESERVE USER CREATED DATA PERFECTLY, NO INVENTED DATA)
 export function initLocalStore() {
-  const rawClientes = localStorage.getItem(STORAGE_KEYS.CLIENTES);
-  if (!rawClientes || rawClientes === '[]') {
-    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(defaultClientes));
-  } else {
-    try {
-      const clients: Cliente[] = JSON.parse(rawClientes);
-      let changed = false;
-      for (const def of defaultClientes) {
-        if (!clients.some((c) => c.cpf.replace(/\D/g, '') === def.cpf.replace(/\D/g, ''))) {
-          clients.push(def);
-          changed = true;
-        }
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(clients));
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(defaultClientes));
-    }
+  // Enforce one-time complete wipe of any legacy/cached test data for brand new clean start
+  if (!localStorage.getItem('indica_cleaned_v3')) {
+    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify([]));
+    localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify([]));
+    localStorage.removeItem('indica_active_cliente');
+    localStorage.setItem('indica_cleaned_v3', 'true');
   }
 
-  const rawInds = localStorage.getItem(STORAGE_KEYS.INDICACOES);
-  if (!rawInds || rawInds === '[]') {
-    localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify(defaultIndicacoes));
-  } else {
-    try {
-      const inds: Indicacao[] = JSON.parse(rawInds);
-      let changed = false;
-      for (const def of defaultIndicacoes) {
-        if (!inds.some((i) => i.id === def.id)) {
-          inds.push(def);
-          changed = true;
-        }
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify(inds));
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify(defaultIndicacoes));
-    }
+  if (!localStorage.getItem(STORAGE_KEYS.CLIENTES)) {
+    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify([]));
   }
 
-  const rawCups = localStorage.getItem(STORAGE_KEYS.CUPONS);
-  if (!rawCups || rawCups === '[]') {
-    localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify(defaultCupons));
-  } else {
-    try {
-      const cups: Cupom[] = JSON.parse(rawCups);
-      let changed = false;
-      for (const def of defaultCupons) {
-        if (!cups.some((c) => c.id === def.id)) {
-          cups.push(def);
-          changed = true;
-        }
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify(cups));
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify(defaultCupons));
-    }
+  if (!localStorage.getItem(STORAGE_KEYS.INDICACOES)) {
+    localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify([]));
   }
 
-  const rawLogs = localStorage.getItem(STORAGE_KEYS.LOGS);
-  if (!rawLogs || rawLogs === '[]') {
-    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(defaultLogs));
-  } else {
-    try {
-      const logs: LogSistema[] = JSON.parse(rawLogs);
-      let changed = false;
-      for (const def of defaultLogs) {
-        if (!logs.some((l) => l.id === def.id)) {
-          logs.push(def);
-          changed = true;
-        }
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs));
-      }
-    } catch {
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(defaultLogs));
-    }
+  if (!localStorage.getItem(STORAGE_KEYS.CUPONS)) {
+    localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify([]));
+  }
+
+  if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
+    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify([]));
   }
 
   if (!localStorage.getItem(STORAGE_KEYS.USUARIOS)) {
@@ -605,13 +356,65 @@ export const apiStore = {
     const target = clientes.find((c) => c.id === clienteId);
     if (!target) throw new Error('Cliente não encontrado.');
 
-    const novosClientes = clientes.filter((c) => c.id !== clienteId);
+    const cleanCpf = target.cpf.replace(/\D/g, '');
+
+    // 1. Remove client from CLIENTES
+    const novosClientes = clientes.filter(
+      (c) => c.id !== clienteId && c.cpf.replace(/\D/g, '') !== cleanCpf
+    );
     setStoreData(STORAGE_KEYS.CLIENTES, novosClientes);
+
+    // 2. Cascade delete ALL indications for this client
+    const indicacoes = getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES);
+    const novasIndicacoes = indicacoes.filter(
+      (ind) => ind.clienteId !== clienteId && ind.clienteCpf.replace(/\D/g, '') !== cleanCpf
+    );
+    setStoreData(STORAGE_KEYS.INDICACOES, novasIndicacoes);
+
+    // 3. Cascade delete ALL coupons for this client
+    const cupons = getStoreData<Cupom[]>(STORAGE_KEYS.CUPONS);
+    const novosCupons = cupons.filter(
+      (cup) => cup.clienteId !== clienteId && cup.clienteCpf.replace(/\D/g, '') !== cleanCpf
+    );
+    setStoreData(STORAGE_KEYS.CUPONS, novosCupons);
+
+    // 4. Logout active client session if matched
+    if (typeof localStorage !== 'undefined') {
+      const activeSaved = localStorage.getItem('indica_active_cliente');
+      if (activeSaved) {
+        try {
+          const parsed = JSON.parse(activeSaved);
+          if (parsed.id === clienteId || parsed.cpf.replace(/\D/g, '') === cleanCpf) {
+            localStorage.removeItem('indica_active_cliente');
+          }
+        } catch {}
+      }
+    }
 
     apiStore.addLog(
       usuarioResponsavel || 'Sistema',
-      'Cliente Removido',
-      `O cadastro do cliente ${target.nome} (CPF: ${target.cpf}) foi excluído do sistema.`
+      'Cliente e Indicações Removidos',
+      `O cadastro do cliente ${target.nome} (CPF: ${target.cpf}) e todas as suas indicações/cupons foram permanentemente excluídos do sistema.`
+    );
+  },
+
+  deleteIndicacao: (indicacaoId: string, usuarioResponsavel?: string): void => {
+    const indicacoes = getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES);
+    const target = indicacoes.find((i) => i.id === indicacaoId);
+    if (!target) return;
+
+    const novasIndicacoes = indicacoes.filter((i) => i.id !== indicacaoId);
+    setStoreData(STORAGE_KEYS.INDICACOES, novasIndicacoes);
+
+    // Cascade delete associated coupon
+    const cupons = getStoreData<Cupom[]>(STORAGE_KEYS.CUPONS);
+    const novosCupons = cupons.filter((c) => c.indicacaoId !== indicacaoId);
+    setStoreData(STORAGE_KEYS.CUPONS, novosCupons);
+
+    apiStore.addLog(
+      usuarioResponsavel || 'Sistema',
+      'Indicação Excluída',
+      `A indicação de ${target.nomeIndicado} (Cliente: ${target.clienteNome || 'N/I'}) foi excluída do sistema.`
     );
   },
 
@@ -848,6 +651,23 @@ export const apiStore = {
     };
     apiStore.addLog('Super Admin', 'Geração de Backup', 'Backup completo do banco de dados gerado e exportado.');
     return data;
+  },
+
+  limparRegistrosClientesEIndicacoes: (usuarioResponsavel = 'Administrador') => {
+    setStoreData(STORAGE_KEYS.CLIENTES, []);
+    setStoreData(STORAGE_KEYS.INDICACOES, []);
+    setStoreData(STORAGE_KEYS.CUPONS, []);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('indica_active_cliente');
+    }
+    const logInicial: LogSistema = {
+      id: 'log_' + Math.random().toString(36).substring(2, 9),
+      usuarioNome: usuarioResponsavel,
+      acao: 'Limpeza do Banco de Dados',
+      detalhes: 'Todos os cadastros de clientes, indicações e cupons foram limpos para novos testes.',
+      criadoEm: new Date().toISOString(),
+    };
+    setStoreData(STORAGE_KEYS.LOGS, [logInicial]);
   },
 
   restaurarBackup: (backupJsonStr: string) => {

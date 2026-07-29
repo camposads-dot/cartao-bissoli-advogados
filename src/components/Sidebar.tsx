@@ -140,98 +140,102 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* METRICS DASHBOARD SUMMARY (ADVBOX STYLE INTEGRATED WIDGET) */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Resumo do Painel
+        {/* METRICS DASHBOARD SUMMARY (EXCLUSIVO PARA ÁREA INTERNA DA EQUIPE) */}
+        {auth.portalType === 'interno' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Resumo do Painel
+              </span>
+              <span className="flex items-center space-x-1 text-[10px] text-emerald-400 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Ao Vivo</span>
+              </span>
+            </div>
+
+            <div className="bg-slate-900/60 rounded-xl border border-slate-800/80 p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400 flex items-center space-x-2">
+                  <Users className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Indicações</span>
+                </span>
+                <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded-md">{totalIndicacoes}</span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400 flex items-center space-x-2">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Contratos Fechados</span>
+                </span>
+                <span className="font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-md">
+                  {totalContratos}
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-400 flex items-center space-x-2">
+                  <Gift className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Cupons Disponíveis</span>
+                </span>
+                <span className="font-bold text-amber-400">R$ {totalCuponsDisponiveis.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SYSTEM SHORTCUTS / FERRAMENTAS (EXCLUSIVO PARA ÁREA INTERNA DA EQUIPE) */}
+        {auth.portalType === 'interno' && (
+          <div className="space-y-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 block">
+              Ferramentas & Pesquisa
             </span>
-            <span className="flex items-center space-x-1 text-[10px] text-emerald-400 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>Ao Vivo</span>
-            </span>
-          </div>
+            <div className="space-y-1">
+              <button
+                onClick={onOpenContacts}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Contact className="w-4 h-4 text-indigo-400 shrink-0" />
+                  <span>Lista de Clientes</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+              </button>
 
-          <div className="bg-slate-900/60 rounded-xl border border-slate-800/80 p-3 space-y-2.5">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 flex items-center space-x-2">
-                <Users className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Indicações</span>
-              </span>
-              <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded-md">{totalIndicacoes}</span>
+              <button
+                onClick={onOpenSearchCpf}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <UserCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Buscar por CPF</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
+              </button>
+
+              <button
+                onClick={onOpenReports}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <FileText className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>Relatórios em PDF/CSV</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
+              </button>
+
+              <button
+                onClick={onOpenSqlViewer}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <Database className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Script SQL Supabase</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+              </button>
             </div>
-
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400 flex items-center space-x-2">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Contratos Fechados</span>
-              </span>
-              <span className="font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-md">
-                {totalContratos}
-              </span>
-            </div>
-
-            <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 flex items-center space-x-2">
-                <Gift className="w-3.5 h-3.5 text-amber-400" />
-                <span>Cupons Disponíveis</span>
-              </span>
-              <span className="font-bold text-amber-400">R$ {totalCuponsDisponiveis.toFixed(2)}</span>
-            </div>
           </div>
-        </div>
-
-        {/* SYSTEM SHORTCUTS / FERRAMENTAS */}
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 block">
-            Ferramentas & Pesquisa
-          </span>
-          <div className="space-y-1">
-            <button
-              onClick={onOpenContacts}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Contact className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span>Lista de Clientes</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
-            </button>
-
-            <button
-              onClick={onOpenSearchCpf}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center space-x-2.5">
-                <UserCheck className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Buscar por CPF</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
-            </button>
-
-            <button
-              onClick={onOpenReports}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center space-x-2.5">
-                <FileText className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Relatórios em PDF/CSV</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
-            </button>
-
-            <button
-              onClick={onOpenSqlViewer}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center space-x-2.5">
-                <Database className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Script SQL Supabase</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* SETORES INTERNOS (STAFF) */}
         {auth.portalType === 'interno' && (

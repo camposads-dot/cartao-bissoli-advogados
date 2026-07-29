@@ -537,6 +537,59 @@ export const ClientContactsModal: React.FC<ClientContactsModalProps> = ({
                           </span>
                         </div>
                       </div>
+
+                      {/* INDICATED CONTACTS LIST (IF ANY) */}
+                      {userInds.length > 0 && (
+                        <div className="mt-3 pt-2.5 border-t border-dashed border-slate-200 dark:border-slate-700/80 space-y-2">
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                            Pessoas Indicadas ({userInds.length}):
+                          </span>
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                            {userInds.map((ind) => (
+                              <div
+                                key={ind.id}
+                                className="flex items-center justify-between text-[11px] p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 shadow-xs gap-2"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <span className="font-bold text-slate-900 dark:text-slate-100 truncate block">
+                                    {ind.nomeIndicado}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 block truncate">
+                                    {ind.tipoAcaoNome || 'Ação'} • {ind.telefoneIndicado}
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-1.5 shrink-0">
+                                  <span
+                                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                      ind.status === 'Contrato Fechado' || ind.status === 'Cupom Gerado'
+                                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                        : ind.status === 'Em Atendimento'
+                                        ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                        : ind.status === 'Qualificada'
+                                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30'
+                                        : 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border border-slate-500/30'
+                                    }`}
+                                  >
+                                    {ind.status}
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`Excluir a indicação de ${ind.nomeIndicado}?`)) {
+                                        apiStore.deleteIndicacao(ind.id, 'Equipe / Colaborador');
+                                      }
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                                    title="Excluir apenas esta indicação"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* ACTIONS */}
@@ -600,9 +653,14 @@ export const ClientContactsModal: React.FC<ClientContactsModalProps> = ({
               </div>
             </div>
             
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-100 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700">
-              Tem certeza que deseja apagar permanentemente o cadastro do cliente <strong className="text-slate-900 dark:text-white font-bold">{deletingClient.nome}</strong> (CPF: <span className="font-mono text-amber-500 font-semibold">{deletingClient.cpf}</span>)?
-            </p>
+            <div className="bg-slate-100 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+              <p>
+                Tem certeza que deseja apagar permanentemente o cadastro do cliente <strong className="text-slate-900 dark:text-white font-bold">{deletingClient.nome}</strong> (CPF: <span className="font-mono text-amber-500 font-semibold">{deletingClient.cpf}</span>)?
+              </p>
+              <p className="text-[11px] text-rose-500 font-bold bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+                ⚠️ Atenção: O cliente, TODAS as indicações enviadas por ele e os cupons vinculados serão excluídos simultaneamente.
+              </p>
+            </div>
 
             <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-200 dark:border-slate-800">
               <button
