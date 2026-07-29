@@ -267,30 +267,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* SEARCH CLIENT BY CPF BUTTON & LOGGED-IN STAFF BADGE (VISIBLE ON DESKTOP) */}
-          <div className="hidden lg:flex items-center space-x-3">
-            <button
-              onClick={onOpenContacts}
-              className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs font-bold transition-all cursor-pointer shadow-2xs"
-            >
-              <Contact className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span>Lista de Clientes</span>
-            </button>
-
-            {auth.staffActive && (
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                <div className="text-left leading-tight">
-                  <span className="font-bold text-slate-800 dark:text-slate-200 block truncate max-w-[180px]">
-                    {auth.staffActive.nome} ({auth.staffActive.perfil.replace('_', ' ').toUpperCase()})
-                  </span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block truncate max-w-[180px]">
-                    {auth.staffActive.email}
-                  </span>
-                </div>
+          {/* LOGGED-IN STAFF BADGE (VISIBLE ON DESKTOP) */}
+          {auth.staffActive && (
+            <div className="hidden lg:flex items-center space-x-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+              <div className="text-left leading-tight">
+                <span className="font-bold text-slate-800 dark:text-slate-200 block truncate max-w-[180px]">
+                  {auth.staffActive.nome} ({auth.staffActive.perfil.replace('_', ' ').toUpperCase()})
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block truncate max-w-[180px]">
+                  {auth.staffActive.email}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* RIGHT ACTIONS: NOTIFICATIONS, THEME TOGGLE & LOGOUT */}
           <div className="flex items-center space-x-2 relative">
