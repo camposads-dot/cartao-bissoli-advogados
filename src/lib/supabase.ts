@@ -187,6 +187,184 @@ if (bc) {
 // CENTRAL EXPRESS SERVER SYNC ENGINE (Synchronizes Mobile and Desktop in Real-Time instantly)
 let isSyncingFromServer = false;
 
+// SMART UNION MERGE FOR LOCAL & REMOTE DATA
+export function mergeStoreItems(
+  key: string,
+  localRaw: any,
+  remoteRaw: any
+): { merged: any; changed: boolean; needsPushBack: boolean } {
+  if (remoteRaw === undefined || remoteRaw === null) {
+    return { merged: localRaw, changed: false, needsPushBack: false };
+  }
+
+  let local = localRaw;
+  if (typeof local === 'string') {
+    try {
+      local = JSON.parse(local);
+    } catch {
+      local = [];
+    }
+  }
+  if (!local) local = [];
+
+  let remote = remoteRaw;
+  if (typeof remote === 'string') {
+    try {
+      remote = JSON.parse(remote);
+    } catch {
+      remote = [];
+    }
+  }
+
+  // ARRAY MERGE STRATEGY
+  if (Array.isArray(local) && Array.isArray(remote)) {
+    let changed = false;
+    let needsPushBack = false;
+
+    if (key === STORAGE_KEYS.CLIENTES) {
+      const mergedList = [...local];
+      for (const rItem of remote) {
+        if (!rItem || !rItem.cpf) continue;
+        const cleanR = rItem.cpf.replace(/\D/g, '');
+        if (!cleanR) continue;
+
+        const idx = mergedList.findIndex((l) => l.cpf && l.cpf.replace(/\D/g, '') === cleanR);
+        if (idx === -1) {
+          mergedList.push(rItem);
+          changed = true;
+        } else {
+          const lItem = mergedList[idx];
+          if (rItem.nome && rItem.nome !== 'Cliente Não Identificado' && lItem.nome !== rItem.nome) {
+            lItem.nome = rItem.nome;
+            changed = true;
+          }
+          if (rItem.telefone && rItem.telefone !== '(00) 00000-0000' && lItem.telefone !== rItem.telefone) {
+            lItem.telefone = rItem.telefone;
+            changed = true;
+          }
+          if (rItem.email && lItem.email !== rItem.email) {
+            lItem.email = rItem.email;
+            changed = true;
+          }
+        }
+      }
+      for (const lItem of local) {
+        if (!lItem || !lItem.cpf) continue;
+        const cleanL = lItem.cpf.replace(/\D/g, '');
+        const inRemote = remote.some((r) => r && r.cpf && r.cpf.replace(/\D/g, '') === cleanL);
+        if (!inRemote) {
+          needsPushBack = true;
+        }
+      }
+      return { merged: mergedList, changed, needsPushBack };
+    }
+
+    if (key === STORAGE_KEYS.INDICACOES) {
+      const mergedList = [...local];
+      for (const rItem of remote) {
+        if (!rItem || !rItem.id) continue;
+        const idx = mergedList.findIndex((l) => l.id === rItem.id);
+        if (idx === -1) {
+          mergedList.push(rItem);
+          changed = true;
+        } else {
+          const lItem = mergedList[idx];
+          if (lItem.status !== rItem.status) {
+            lItem.status = rItem.status;
+            changed = true;
+          }
+          if (rItem.historicoStatus && rItem.historicoStatus.length > (lItem.historicoStatus?.length || 0)) {
+            lItem.historicoStatus = rItem.historicoStatus;
+            changed = true;
+          }
+        }
+      }
+      for (const lItem of local) {
+        if (!lItem || !lItem.id) continue;
+        if (!remote.some((r) => r && r.id === lItem.id)) {
+          needsPushBack = true;
+        }
+      }
+      return { merged: mergedList, changed, needsPushBack };
+    }
+
+    if (key === STORAGE_KEYS.CUPONS) {
+      const mergedList = [...local];
+      for (const rItem of remote) {
+        if (!rItem || (!rItem.id && !rItem.codigo)) continue;
+        const idx = mergedList.findIndex((l) => l.id === rItem.id || l.codigo === rItem.codigo);
+        if (idx === -1) {
+          mergedList.push(rItem);
+          changed = true;
+        } else {
+          const lItem = mergedList[idx];
+          if (lItem.status !== rItem.status) {
+            lItem.status = rItem.status;
+            changed = true;
+          }
+        }
+      }
+      for (const lItem of local) {
+        if (!lItem || (!lItem.id && !lItem.codigo)) continue;
+        if (!remote.some((r) => r && (r.id === lItem.id || r.codigo === lItem.codigo))) {
+          needsPushBack = true;
+        }
+      }
+      return { merged: mergedList, changed, needsPushBack };
+    }
+
+    if (key === STORAGE_KEYS.LOGS) {
+      const mergedList = [...local];
+      for (const rItem of remote) {
+        if (!rItem || !rItem.id) continue;
+        if (!mergedList.some((l) => l.id === rItem.id)) {
+          mergedList.push(rItem);
+          changed = true;
+        }
+      }
+      mergedList.sort((a, b) => new Date(b.dataHora || 0).getTime() - new Date(a.dataHora || 0).getTime());
+      return { merged: mergedList, changed, needsPushBack: false };
+    }
+
+    if (key === STORAGE_KEYS.USUARIOS) {
+      const mergedList = [...local];
+      for (const rItem of remote) {
+        if (!rItem || (!rItem.id && !rItem.email)) continue;
+        const idx = mergedList.findIndex((l) => l.id === rItem.id || l.email?.toLowerCase() === rItem.email?.toLowerCase());
+        if (idx === -1) {
+          mergedList.push(rItem);
+          changed = true;
+        } else {
+          if (rItem.senha && mergedList[idx].senha !== rItem.senha) {
+            mergedList[idx].senha = rItem.senha;
+            changed = true;
+          }
+        }
+      }
+      return { merged: mergedList, changed, needsPushBack: false };
+    }
+
+    // Generic array merge
+    const mergedList = [...local];
+    for (const rItem of remote) {
+      const rStr = JSON.stringify(rItem);
+      if (!mergedList.some((l) => JSON.stringify(l) === rStr)) {
+        mergedList.push(rItem);
+        changed = true;
+      }
+    }
+    return { merged: mergedList, changed, needsPushBack: false };
+  }
+
+  // Object or Primitive compare
+  const localStr = JSON.stringify(local);
+  const remoteStr = JSON.stringify(remote);
+  if (localStr !== remoteStr) {
+    return { merged: remote, changed: true, needsPushBack: false };
+  }
+  return { merged: local, changed: false, needsPushBack: false };
+}
+
 export async function pushToServer(key: string, data: any): Promise<void> {
   if (typeof window === 'undefined') return;
   try {
@@ -211,11 +389,14 @@ export async function pullFromServer(): Promise<void> {
         let updatedAny = false;
         for (const [key, item] of Object.entries<any>(store)) {
           if (item && item.value !== undefined) {
-            const currentLocal = localStorage.getItem(key);
-            const remoteStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
-            if (currentLocal !== remoteStr) {
-              localStorage.setItem(key, remoteStr);
+            const localRaw = localStorage.getItem(key);
+            const { merged, changed, needsPushBack } = mergeStoreItems(key, localRaw, item.value);
+            if (changed) {
+              localStorage.setItem(key, JSON.stringify(merged));
               updatedAny = true;
+            }
+            if (needsPushBack) {
+              pushToServer(key, merged);
             }
           }
         }
@@ -296,11 +477,14 @@ export async function pullFromSupabase(): Promise<void> {
       if (syncRows && syncRows.length > 0) {
         for (const row of syncRows) {
           if (row.key && row.value !== undefined) {
-            const currentLocal = localStorage.getItem(row.key);
-            const remoteStr = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
-            if (currentLocal !== remoteStr) {
-              localStorage.setItem(row.key, remoteStr);
+            const localRaw = localStorage.getItem(row.key);
+            const { merged, changed, needsPushBack } = mergeStoreItems(row.key, localRaw, row.value);
+            if (changed) {
+              localStorage.setItem(row.key, JSON.stringify(merged));
               updatedAny = true;
+            }
+            if (needsPushBack) {
+              pushToSupabase(row.key, merged);
             }
           }
         }
@@ -313,45 +497,24 @@ export async function pullFromSupabase(): Promise<void> {
       .select('*');
 
     if (!cliErr && dbClientes && dbClientes.length > 0) {
-      const currentClientes: Cliente[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLIENTES) || '[]');
-      let cliChanged = false;
+      const localRaw = localStorage.getItem(STORAGE_KEYS.CLIENTES);
+      const remoteMapped = dbClientes.map((r) => ({
+        id: r.id || 'c_' + Math.random().toString(36).substring(2, 9),
+        nome: r.nome || 'Cliente',
+        cpf: r.cpf,
+        telefone: r.telefone || '(00) 00000-0000',
+        email: r.email || '',
+        criadoEm: r.created_at || new Date().toISOString(),
+      }));
 
-      for (const row of dbClientes) {
-        const cleanCpf = (row.cpf || '').replace(/\D/g, '');
-        if (!cleanCpf) continue;
+      const { merged, changed, needsPushBack } = mergeStoreItems(STORAGE_KEYS.CLIENTES, localRaw, remoteMapped);
 
-        const idx = currentClientes.findIndex((c) => c.cpf.replace(/\D/g, '') === cleanCpf);
-        if (idx === -1) {
-          currentClientes.push({
-            id: row.id || 'c_' + Math.random().toString(36).substring(2, 9),
-            nome: row.nome || 'Cliente',
-            cpf: row.cpf,
-            telefone: row.telefone || '(00) 00000-0000',
-            email: row.email || '',
-            criadoEm: row.created_at || new Date().toISOString(),
-          });
-          cliChanged = true;
-        } else {
-          let rowUpdated = false;
-          if (row.nome && currentClientes[idx].nome !== row.nome && row.nome !== 'Cliente Não Identificado') {
-            currentClientes[idx].nome = row.nome;
-            rowUpdated = true;
-          }
-          if (row.telefone && currentClientes[idx].telefone !== row.telefone && row.telefone !== '(00) 00000-0000') {
-            currentClientes[idx].telefone = row.telefone;
-            rowUpdated = true;
-          }
-          if (row.email && currentClientes[idx].email !== row.email) {
-            currentClientes[idx].email = row.email;
-            rowUpdated = true;
-          }
-          if (rowUpdated) cliChanged = true;
-        }
-      }
-
-      if (cliChanged) {
-        localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(currentClientes));
+      if (changed) {
+        localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(merged));
         updatedAny = true;
+      }
+      if (needsPushBack) {
+        pushToSupabase(STORAGE_KEYS.CLIENTES, merged);
       }
     }
 
@@ -371,11 +534,11 @@ if (typeof window !== 'undefined') {
   pullFromServer();
   pullFromSupabase();
 
-  // Background polling intervals (runs every 2 seconds for server and 3 seconds for Supabase)
+  // Background polling intervals (runs every 1.5s)
   setInterval(() => {
     pullFromServer();
     pullFromSupabase();
-  }, 2000);
+  }, 1500);
 
   // SSE Stream listener for instant server pushes (<1 second real-time updates)
   try {
@@ -385,10 +548,10 @@ if (typeof window !== 'undefined') {
         try {
           const { key, value } = JSON.parse(e.data);
           if (key && value !== undefined) {
-            const currentLocal = localStorage.getItem(key);
-            const remoteStr = typeof value === 'string' ? value : JSON.stringify(value);
-            if (currentLocal !== remoteStr) {
-              localStorage.setItem(key, remoteStr);
+            const localRaw = localStorage.getItem(key);
+            const { merged, changed } = mergeStoreItems(key, localRaw, value);
+            if (changed) {
+              localStorage.setItem(key, JSON.stringify(merged));
               window.dispatchEvent(new CustomEvent('indica_data_updated', { detail: { key } }));
             }
           }
