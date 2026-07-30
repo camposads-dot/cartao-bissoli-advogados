@@ -863,8 +863,10 @@ export const apiStore = {
 
     const indicacoes = apiStore.getIndicacoes();
     const config = apiStore.getConfig();
+    const cleanCpfIndicado = (indicacao.cpfIndicado && indicacao.cpfIndicado.trim()) ? indicacao.cpfIndicado.trim() : 'Não Informado';
     const newIndicacao: Indicacao = {
       ...indicacao,
+      cpfIndicado: cleanCpfIndicado,
       id: 'ind_' + Math.random().toString(36).substring(2, 9),
       status: 'Recebida',
       criadoEm: new Date().toISOString(),

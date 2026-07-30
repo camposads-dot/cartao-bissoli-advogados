@@ -26,6 +26,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const parsed: Cliente = JSON.parse(saved);
         const clientes = apiStore.getClientes();
+        if (clientes.length === 0) {
+          // Data still loading from server/supabase on startup
+          return parsed;
+        }
         const cleanCpf = parsed.cpf ? parsed.cpf.replace(/\D/g, '') : '';
         const exists = clientes.some((c) => c.id === parsed.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
         if (exists) return parsed;
@@ -79,13 +83,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const parsed = JSON.parse(savedCliente);
           const currentClientes = apiStore.getClientes();
-          const cleanCpf = parsed.cpf ? parsed.cpf.replace(/\D/g, '') : '';
-          const exists = currentClientes.some((c) => c.id === parsed.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
-          if (exists) {
+          if (currentClientes.length === 0) {
             setClienteActive(parsed);
           } else {
-            setClienteActive(null);
-            localStorage.removeItem('indica_active_cliente');
+            const cleanCpf = parsed.cpf ? parsed.cpf.replace(/\D/g, '') : '';
+            const exists = currentClientes.some((c) => c.id === parsed.id || (cleanCpf && c.cpf.replace(/\D/g, '') === cleanCpf));
+            if (exists) {
+              setClienteActive(parsed);
+            } else {
+              setClienteActive(null);
+              localStorage.removeItem('indica_active_cliente');
+            }
           }
         } catch {
           setClienteActive(null);
