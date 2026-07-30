@@ -332,7 +332,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {/* NOTIFICATION DROPDOWN POPOVER */}
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden text-slate-900 dark:text-white animate-in fade-in slide-in-from-top-2">
+                <div className="absolute right-0 sm:-right-4 lg:-right-8 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 z-50 overflow-hidden text-slate-900 dark:text-white animate-in fade-in slide-in-from-top-2">
                   <div className="p-3.5 bg-gradient-to-r from-slate-900 to-[#071325] text-white flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Bell className="w-4 h-4 text-amber-400" />
@@ -514,25 +514,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* REAL-TIME FLOATING TOAST NOTIFICATION FOR COLABORADORES */}
       {toastNotif && auth.portalType === 'interno' && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#0B192C] text-white p-4 rounded-2xl shadow-2xl border-2 border-amber-500/80 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed top-20 right-4 sm:right-6 lg:right-10 z-[100] max-w-md w-[calc(100%-2rem)] sm:w-[420px] bg-[#0B192C] text-white p-4 sm:p-5 rounded-2xl shadow-2xl border-2 border-amber-500/90 animate-in fade-in slide-in-from-top-4 duration-300 ring-4 ring-amber-500/20">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center space-x-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-              <Bell className="w-4 h-4 animate-bounce" />
+              <Bell className="w-4 h-4 animate-bounce shrink-0" />
               <span>Notificação da Equipe em Tempo Real</span>
             </div>
             <button
               onClick={() => setToastNotif(null)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="mt-2.5">
+          <div className="mt-3">
             <h4 className="text-sm font-extrabold text-white leading-tight">{toastNotif.titulo}</h4>
             <p className="text-xs text-slate-300 mt-1 leading-relaxed">{toastNotif.descricao}</p>
           </div>
-          <div className="mt-3.5 flex items-center justify-between pt-2 border-t border-slate-800">
-            <span className="text-[10px] text-slate-400 font-medium">
+          <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800">
+            <span className="text-[11px] text-slate-400 font-medium truncate max-w-[160px]">
               Por: {toastNotif.usuario}
             </span>
             <button
@@ -541,9 +541,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setToastNotif(null);
                 handleNotificationClick(current);
               }}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-colors cursor-pointer shadow-xs"
+              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs rounded-xl transition-colors cursor-pointer shadow-sm flex items-center gap-1 shrink-0"
             >
-              Ver Detalhes / Cliente →
+              <span>Ver Detalhes / Cliente</span>
+              <span>→</span>
             </button>
           </div>
         </div>
