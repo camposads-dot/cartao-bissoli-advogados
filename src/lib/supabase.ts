@@ -430,7 +430,11 @@ export async function pushToSupabase(key: string, data: any): Promise<void> {
     );
 
     if (syncError) {
-      updateSupabaseStatus(false, syncError.message);
+      let friendlyErr = syncError.message;
+      if (syncError.message.includes('app_store_sync') || syncError.message.includes('schema cache') || syncError.message.includes('relation')) {
+        friendlyErr = "Tabelas do Supabase não encontradas no seu projeto. Por favor, cole o Script SQL no 'SQL Editor' do Supabase e clique em 'Run'.";
+      }
+      updateSupabaseStatus(false, friendlyErr);
     } else {
       updateSupabaseStatus(true, null);
     }
@@ -471,7 +475,11 @@ export async function pullFromSupabase(): Promise<void> {
       .select('*');
 
     if (syncErr) {
-      updateSupabaseStatus(false, syncErr.message);
+      let friendlyErr = syncErr.message;
+      if (syncErr.message.includes('app_store_sync') || syncErr.message.includes('schema cache') || syncErr.message.includes('relation')) {
+        friendlyErr = "Tabelas do Supabase não encontradas no seu projeto. Por favor, cole o Script SQL no 'SQL Editor' do Supabase e clique em 'Run'.";
+      }
+      updateSupabaseStatus(false, friendlyErr);
     } else {
       updateSupabaseStatus(true, null);
       if (syncRows && syncRows.length > 0) {

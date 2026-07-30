@@ -124,6 +124,13 @@ CREATE TABLE IF NOT EXISTS public.configuracoes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 12. TABELA DE SINCRONIZAÇÃO EM NUVEM (STORE SYNC)
+CREATE TABLE IF NOT EXISTS public.app_store_sync (
+    key VARCHAR(100) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- ÍNDICES PARA ALTA PERFORMANCE DE CONSULTA
 -- ==============================================================================
@@ -202,25 +209,37 @@ ALTER TABLE public.historico_indicacao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tipos_acao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_store_sync ENABLE ROW LEVEL SECURITY;
 
 -- Permissões públicas/anon para permitir acesso do Cliente por CPF
+DROP POLICY IF EXISTS "Permitir leitura/cadastro publico de clientes por CPF" ON public.clientes;
 CREATE POLICY "Permitir leitura/cadastro publico de clientes por CPF" 
     ON public.clientes FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir acesso público de indicações associadas" ON public.indicacoes;
 CREATE POLICY "Permitir acesso público de indicações associadas" 
     ON public.indicacoes FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir acesso público de cupons do cliente" ON public.cupons;
 CREATE POLICY "Permitir acesso público de cupons do cliente" 
     ON public.cupons FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir acesso público aos tipos de acao" ON public.tipos_acao;
 CREATE POLICY "Permitir acesso público aos tipos de acao" 
     ON public.tipos_acao FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Permitir acesso público ao histórico de indicacao" ON public.historico_indicacao;
 CREATE POLICY "Permitir acesso público ao histórico de indicacao" 
     ON public.historico_indicacao FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir acesso a usuarios e configuracoes" ON public.usuarios;
 CREATE POLICY "Permitir acesso a usuarios e configuracoes" 
     ON public.usuarios FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir acesso as configuracoes" ON public.configuracoes;
 CREATE POLICY "Permitir acesso as configuracoes" 
     ON public.configuracoes FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Permitir acesso app store sync" ON public.app_store_sync;
+CREATE POLICY "Permitir acesso app store sync" 
+    ON public.app_store_sync FOR ALL USING (true);

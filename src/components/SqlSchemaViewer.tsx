@@ -62,12 +62,20 @@ export const SqlSchemaViewer: React.FC<SqlSchemaViewerProps> = ({ isOpen, onClos
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ENUMS
-CREATE TYPE status_indicacao_enum AS ENUM (
-    'Recebida', 'Em Atendimento', 'Qualificada', 'Desqualificada', 'Contrato Fechado', 'Cupom Gerado', 'Cupom Utilizado'
-);
-CREATE TYPE status_cupom_enum AS ENUM ('Disponivel', 'Utilizado');
-CREATE TYPE perfil_codigo_enum AS ENUM ('super_admin', 'admin_master', 'comercial', 'financeiro', 'gestao');
+-- ENUMS (CRIAR APENAS SE NÃO EXISTIREM)
+DO $$ BEGIN
+    CREATE TYPE status_indicacao_enum AS ENUM (
+        'Recebida', 'Em Atendimento', 'Qualificada', 'Desqualificada', 'Contrato Fechado', 'Cupom Gerado', 'Cupom Utilizado'
+    );
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE status_cupom_enum AS ENUM ('Disponivel', 'Utilizado');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE TYPE perfil_codigo_enum AS ENUM ('super_admin', 'admin_master', 'comercial', 'financeiro', 'gestao');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- TABELA CLIENTES (ACESSO POR CPF SEM SENHA)
 CREATE TABLE IF NOT EXISTS public.clientes (
@@ -138,15 +146,22 @@ CREATE TABLE IF NOT EXISTS public.app_store_sync (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ROW LEVEL SECURITY
+-- ROW LEVEL SECURITY POLICIES
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indicacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_store_sync ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Acesso Livre Clientes" ON public.clientes;
 CREATE POLICY "Acesso Livre Clientes" ON public.clientes FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Acesso Livre Indicacoes" ON public.indicacoes;
 CREATE POLICY "Acesso Livre Indicacoes" ON public.indicacoes FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Acesso Livre Cupons" ON public.cupons;
 CREATE POLICY "Acesso Livre Cupons" ON public.cupons FOR ALL USING (true);
+
+DROP POLICY IF EXISTS "Acesso Livre App Store Sync" ON public.app_store_sync;
 CREATE POLICY "Acesso Livre App Store Sync" ON public.app_store_sync FOR ALL USING (true);`;
 
   const handleCopy = () => {
