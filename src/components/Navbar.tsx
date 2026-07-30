@@ -140,13 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const roles: { codigo: PerfilCodigo; nome: string; gestor: string; icon: React.ReactNode }[] = [
-    {
-      codigo: 'super_admin',
-      nome: 'Super Admin',
-      gestor: 'Elnatan Campos',
-      icon: <Sparkles className="w-4 h-4 text-indigo-500" />,
-    },
+  const allRoles: { codigo: PerfilCodigo; nome: string; gestor: string; icon: React.ReactNode }[] = [
     {
       codigo: 'comercial',
       nome: 'Comercial',
@@ -171,7 +165,16 @@ export const Navbar: React.FC<NavbarProps> = ({
       gestor: 'Administrador',
       icon: <ShieldCheck className="w-4 h-4 text-amber-500" />,
     },
+    {
+      codigo: 'super_admin',
+      nome: 'Super Admin',
+      gestor: 'Elnatan Campos',
+      icon: <Sparkles className="w-4 h-4 text-indigo-500" />,
+    },
   ];
+
+  const availableRoles = allRoles.filter((r) => auth.canAccessSector(r.codigo));
+  const isUserAdmin = auth.canAccessSector('super_admin') || auth.canAccessSector('admin_master');
 
   // EXCLUSIVE CLIENT NAVBAR - NO ADMIN/STAFF CONTROLS OR PORTAL SWITCHERS
   if (auth.portalType === 'cliente') {
@@ -292,7 +295,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center space-x-2 relative">
             {/* SUPABASE CLOUD SYNC STATUS BUTTON */}
             <button
-              onClick={onOpenSqlViewer}
+              onClick={isUserAdmin ? onOpenSqlViewer : () => alert('Sincronização Ativa na Nuvem Supabase. Configurações avançadas são restritas ao Administrador Master.')}
               className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
                 supaStatus.connected
                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
@@ -463,27 +466,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* IF INTERNAL COLABORADOR MODE ACTIVE ON MOBILE, SHOW SECTOR / USER ROLE SWITCHER */}
+          {/* IF INTERNAL COLABORADOR MODE ACTIVE ON MOBILE, SHOW SECTOR SWITCHER */}
           {auth.portalType === 'interno' && (
             <div className="pt-1 space-y-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-0.5">
-                Selecione o Setor / Perfil:
+                Setores Autorizados:
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {roles.map((r) => (
-                  <button
-                    key={r.codigo}
-                    onClick={() => auth.switchStaffRole(r.codigo)}
-                    className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                      auth.staffActive?.perfil === r.codigo
-                        ? 'bg-indigo-600 text-white font-bold shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                    }`}
-                  >
-                    {r.icon}
-                    <span className="truncate">{r.nome}</span>
-                  </button>
-                ))}
+                {availableRoles.map((r) => {
+                  const isActive =
+                    auth.activeSector === r.codigo ||
+                    (r.codigo === 'admin_master' && (auth.activeSector === 'super_admin' || auth.activeSector === 'SUPER_ADMIN')) ||
+                    (r.codigo === 'super_admin' && auth.activeSector === 'admin_master');
+                  return (
+                    <button
+                      key={r.codigo}
+                      onClick={() => auth.switchStaffRole(r.codigo)}
+                      className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600 text-white font-bold shadow-xs'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      {r.icon}
+                      <span className="truncate">{r.nome}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -501,13 +510,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>Relatórios</span>
             </button>
 
-            <button
-              onClick={onOpenSqlViewer}
-              className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center space-x-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
-            >
-              <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>Script SQL Supabase</span>
-            </button>
+            {isUserAdmin && (
+              <button
+                onClick={onOpenSqlViewer}
+                className="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center space-x-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors cursor-pointer"
+              >
+                <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Script SQL Supabase</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

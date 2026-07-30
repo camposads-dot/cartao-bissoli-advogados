@@ -27,8 +27,10 @@ const MainContent: React.FC = () => {
   };
 
   const renderInternalPanel = () => {
-    const perfil = auth.staffActive?.perfil || 'comercial';
-    switch (perfil) {
+    const requestedSector = auth.activeSector || auth.staffActive?.perfil || 'comercial';
+    const sector = auth.canAccessSector(requestedSector) ? requestedSector : (auth.staffActive?.perfil || 'comercial');
+
+    switch (sector) {
       case 'comercial':
         return <ComercialPanel />;
       case 'financeiro':

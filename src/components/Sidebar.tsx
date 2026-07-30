@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .filter((c) => c.status === 'Disponivel')
     .reduce((sum, c) => sum + c.valor, 0);
 
-  const roles: { codigo: PerfilCodigo; nome: string; gestor: string; icon: React.ReactNode }[] = [
+  const allRoles: { codigo: PerfilCodigo; nome: string; gestor: string; icon: React.ReactNode }[] = [
     {
       codigo: 'comercial',
       nome: 'Comercial',
@@ -104,6 +104,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Sparkles className="w-4 h-4 text-indigo-400" />,
     },
   ];
+
+  // Filter available roles according to logged user sector access permissions
+  const availableRoles = allRoles.filter((r) => auth.canAccessSector(r.codigo));
+  const isUserAdmin = auth.canAccessSector('super_admin') || auth.canAccessSector('admin_master');
 
   return (
     <aside className="hidden lg:flex flex-col w-64 xl:w-72 bg-[#0B192C] text-slate-200 border-r border-slate-800/80 shrink-0 h-full select-none z-30 overflow-hidden transition-colors">
@@ -229,23 +233,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all" />
               </button>
 
-              <button
-                onClick={onOpenSqlViewer}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer group ${
-                  supaStatus.connected
-                    ? 'text-slate-300 hover:text-white hover:bg-slate-800/80 border-transparent hover:border-slate-700'
-                    : 'text-amber-300 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20'
-                }`}
-              >
-                <div className="flex items-center space-x-2.5">
-                  <Database className={`w-4 h-4 shrink-0 ${supaStatus.connected ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} />
-                  <span>Sincronização Supabase</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full ${supaStatus.connected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
-                </div>
-              </button>
+              {isUserAdmin && (
+                <button
+                  onClick={onOpenSqlViewer}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer group ${
+                    supaStatus.connected
+                      ? 'text-slate-300 hover:text-white hover:bg-slate-800/80 border-transparent hover:border-slate-700'
+                      : 'text-amber-300 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2.5">
+                    <Database className={`w-4 h-4 shrink-0 ${supaStatus.connected ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} />
+                    <span>Sincronização Supabase</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className={`w-2 h-2 rounded-full ${supaStatus.connected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -254,11 +260,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {auth.portalType === 'interno' && (
           <div className="space-y-2">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 block">
-              Módulos / Setores
+              Setores Autorizados
             </span>
             <div className="space-y-1">
-              {roles.map((r) => {
-                const isActive = auth.staffActive?.perfil === r.codigo;
+              {availableRoles.map((r) => {
+                const isActive =
+                  auth.activeSector === r.codigo ||
+                  (r.codigo === 'admin_master' && (auth.activeSector === 'super_admin' || auth.activeSector === 'SUPER_ADMIN')) ||
+                  (r.codigo === 'super_admin' && auth.activeSector === 'admin_master');
                 return (
                   <button
                     key={r.codigo}

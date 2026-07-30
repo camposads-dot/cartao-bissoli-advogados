@@ -7,14 +7,45 @@ interface AuthContextType {
   setPortalType: (type: 'cliente' | 'interno') => void;
   clienteActive: Cliente | null;
   staffActive: UsuarioInterno | null;
+  activeSector: PerfilCodigo;
+  allowedSectors: PerfilCodigo[];
+  canAccessSector: (sector: PerfilCodigo) => boolean;
   loginCliente: (param1: string, param2?: string) => { success: boolean; cliente?: Cliente; message?: string; isNotRegistered?: boolean };
   cadastrarCliente: (nome: string, cpf: string, telefone?: string, email?: string) => { success: boolean; cliente?: Cliente; message?: string; alreadyRegistered?: boolean; isNew?: boolean };
   logoutCliente: () => void;
   loginStaffByEmail: (email: string) => UsuarioInterno | null;
   loginStaffWithCredentials: (email: string, password?: string) => { success: boolean; user?: UsuarioInterno; message?: string };
-  switchStaffRole: (perfil: PerfilCodigo) => void;
+  switchStaffRole: (perfil: PerfilCodigo) => boolean;
   logoutStaff: () => void;
   refreshData: () => void;
+}
+
+export function getSectorPermissions(perfil?: PerfilCodigo): PerfilCodigo[] {
+  if (!perfil) return ['comercial'];
+  const p = perfil.toLowerCase();
+  if (p === 'super_admin' || p === 'admin_master') {
+    return ['admin_master', 'gestao', 'financeiro', 'comercial', 'super_admin'];
+  }
+  if (p === 'gestao') {
+    return ['gestao', 'comercial', 'financeiro'];
+  }
+  if (p === 'financeiro') {
+    return ['financeiro'];
+  }
+  if (p === 'comercial') {
+    return ['comercial'];
+  }
+  return ['comercial'];
+}
+
+export function canAccessSectorHelper(userPerfil?: PerfilCodigo, targetSector?: PerfilCodigo): boolean {
+  if (!userPerfil || !targetSector) return false;
+  const allowed = getSectorPermissions(userPerfil);
+  const targetNorm = targetSector.toLowerCase();
+  if (targetNorm === 'admin_master' || targetNorm === 'super_admin') {
+    return allowed.includes('super_admin') || allowed.includes('admin_master');
+  }
+  return allowed.includes(targetSector as PerfilCodigo);
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,6 +85,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return null;
   });
+
+  const [activeSector, setActiveSectorState] = useState<PerfilCodigo>(() => {
+    const savedSector = localStorage.getItem('indica_active_sector') as PerfilCodigo;
+    const savedStaff = localStorage.getItem('indica_active_staff');
+    if (savedStaff) {
+      try {
+        const parsed: UsuarioInterno = JSON.parse(savedStaff);
+        if (savedSector && canAccessSectorHelper(parsed.perfil, savedSector)) {
+          return savedSector;
+        }
+        return parsed.perfil || 'comercial';
+      } catch {}
+    }
+    return 'comercial';
+  });
+
+  const allowedSectors = getSectorPermissions(staffActive?.perfil || 'comercial');
+
+  const canAccessSector = (sector: PerfilCodigo): boolean => {
+    if (!staffActive) return false;
+    return canAccessSectorHelper(staffActive.perfil, sector);
+  };
 
   const [portalType, setPortalType] = useState<'cliente' | 'interno'>(() => {
     const savedType = localStorage.getItem('indica_portal_type');
@@ -248,6 +301,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const user = usuarios.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.ativo);
     if (user) {
       setStaffActive(user);
+      setActiveSectorState(user.perfil || 'comercial');
+      localStorage.setItem('indica_active_sector', user.perfil || 'comercial');
       setPortalType('interno');
       return user;
     }
@@ -273,18 +328,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setStaffActive(user);
+    setActiveSectorState(user.perfil || 'comercial');
+    localStorage.setItem('indica_active_sector', user.perfil || 'comercial');
     setPortalType('interno');
     return { success: true, user };
   };
 
-  const switchStaffRole = (perfil: PerfilCodigo) => {
-    const usuarios = apiStore.getUsuarios();
-    const targetUser = usuarios.find(
-      (u) => (u.perfil === perfil || (perfil === 'super_admin' && (u.perfil === 'super_admin' || u.perfil === 'SUPER_ADMIN'))) && u.ativo
-    );
-    if (targetUser) {
-      setStaffActive(targetUser);
-      setPortalType('interno');
+  const switchStaffRole = (targetSector: PerfilCodigo): boolean => {
+    if (!staffActive) return false;
+    if (canAccessSectorHelper(staffActive.perfil, targetSector)) {
+      setActiveSectorState(targetSector);
+      localStorage.setItem('indica_active_sector', targetSector);
+      return true;
+    } else {
+      alert(`Acesso Restrito ao Setor: Sua conta (${staffActive.nome}) está designada ao setor '${staffActive.perfil.toUpperCase()}' e não possui permissão para acessar o setor '${targetSector.toUpperCase()}'.`);
+      return false;
     }
   };
 
@@ -292,6 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setStaffActive(null);
     setPortalType('cliente');
     localStorage.removeItem('indica_active_staff');
+    localStorage.removeItem('indica_active_sector');
     localStorage.removeItem('indica_portal_type');
   };
 
@@ -302,6 +361,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPortalType,
         clienteActive,
         staffActive,
+        activeSector,
+        allowedSectors,
+        canAccessSector,
         loginCliente,
         cadastrarCliente,
         logoutCliente,
