@@ -390,13 +390,10 @@ export async function pullFromServer(): Promise<void> {
         for (const [key, item] of Object.entries<any>(store)) {
           if (item && item.value !== undefined) {
             const localRaw = localStorage.getItem(key);
-            const { merged, changed, needsPushBack } = mergeStoreItems(key, localRaw, item.value);
-            if (changed) {
-              localStorage.setItem(key, JSON.stringify(merged));
+            const remoteStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
+            if (localRaw !== remoteStr) {
+              localStorage.setItem(key, remoteStr);
               updatedAny = true;
-            }
-            if (needsPushBack) {
-              pushToServer(key, merged);
             }
           }
         }
@@ -419,7 +416,7 @@ export async function pushToSupabase(key: string, data: any): Promise<void> {
   if (typeof window === 'undefined') return;
   const client = getSupabaseClient();
   try {
-    // 1. Unified Key-Value Store Sync
+    // 1. Unified Key-Value Store Sync (Primary Source of Truth)
     const { error: syncError } = await client.from('app_store_sync').upsert(
       {
         key,
@@ -439,10 +436,11 @@ export async function pushToSupabase(key: string, data: any): Promise<void> {
       updateSupabaseStatus(true, null);
     }
 
-    // 2. Relational Table Sync
+    // 2. Relational Table Sync (Mirror for SQL queries)
     if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
+      const activeCpfs = data.map((c: any) => c && c.cpf ? c.cpf.replace(/\D/g, '') : '').filter(Boolean);
       for (const c of data) {
-        if (c.cpf) {
+        if (c && c.cpf) {
           try {
             await client.from('clientes').upsert(
               {
@@ -456,6 +454,20 @@ export async function pushToSupabase(key: string, data: any): Promise<void> {
           } catch {}
         }
       }
+      // Delete any rows in relational table `clientes` that are no longer active
+      try {
+        const { data: dbRows } = await client.from('clientes').select('cpf');
+        if (dbRows && dbRows.length > 0) {
+          for (const row of dbRows) {
+            if (row.cpf) {
+              const clean = row.cpf.replace(/\D/g, '');
+              if (!activeCpfs.includes(clean)) {
+                await client.from('clientes').delete().eq('cpf', row.cpf);
+              }
+            }
+          }
+        }
+      } catch {}
     }
   } catch (err: any) {
     updateSupabaseStatus(false, err?.message || 'Falha ao salvar no Supabase');
@@ -468,8 +480,9 @@ export async function pullFromSupabase(): Promise<void> {
   const client = getSupabaseClient();
   try {
     let updatedAny = false;
+    let hasStoreSync = false;
 
-    // 1. Pull from app_store_sync table
+    // 1. Pull from app_store_sync table (Master Store)
     const { data: syncRows, error: syncErr } = await client
       .from('app_store_sync')
       .select('*');
@@ -485,44 +498,42 @@ export async function pullFromSupabase(): Promise<void> {
       if (syncRows && syncRows.length > 0) {
         for (const row of syncRows) {
           if (row.key && row.value !== undefined) {
-            const localRaw = localStorage.getItem(row.key);
-            const { merged, changed, needsPushBack } = mergeStoreItems(row.key, localRaw, row.value);
-            if (changed) {
-              localStorage.setItem(row.key, JSON.stringify(merged));
+            hasStoreSync = true;
+            const currentLocal = localStorage.getItem(row.key);
+            const remoteStr = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
+            if (currentLocal !== remoteStr) {
+              localStorage.setItem(row.key, remoteStr);
               updatedAny = true;
-            }
-            if (needsPushBack) {
-              pushToSupabase(row.key, merged);
             }
           }
         }
       }
     }
 
-    // 2. Pull from relational public.clientes table
-    const { data: dbClientes, error: cliErr } = await client
-      .from('clientes')
-      .select('*');
+    // 2. Pull from relational public.clientes table (Only if app_store_sync was empty or missing)
+    if (!hasStoreSync) {
+      const { data: dbClientes, error: cliErr } = await client
+        .from('clientes')
+        .select('*');
 
-    if (!cliErr && dbClientes && dbClientes.length > 0) {
-      const localRaw = localStorage.getItem(STORAGE_KEYS.CLIENTES);
-      const remoteMapped = dbClientes.map((r) => ({
-        id: r.id || 'c_' + Math.random().toString(36).substring(2, 9),
-        nome: r.nome || 'Cliente',
-        cpf: r.cpf,
-        telefone: r.telefone || '(00) 00000-0000',
-        email: r.email || '',
-        criadoEm: r.created_at || new Date().toISOString(),
-      }));
+      if (!cliErr && dbClientes && dbClientes.length > 0) {
+        const localRaw = localStorage.getItem(STORAGE_KEYS.CLIENTES);
+        const remoteMapped = dbClientes.map((r) => ({
+          id: r.id || 'c_' + Math.random().toString(36).substring(2, 9),
+          nome: r.nome || 'Cliente',
+          cpf: r.cpf,
+          telefone: r.telefone || '(00) 00000-0000',
+          email: r.email || '',
+          criadoEm: r.created_at || new Date().toISOString(),
+        }));
 
-      const { merged, changed, needsPushBack } = mergeStoreItems(STORAGE_KEYS.CLIENTES, localRaw, remoteMapped);
+        const { merged, changed } = mergeStoreItems(STORAGE_KEYS.CLIENTES, localRaw, remoteMapped);
 
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(merged));
-        updatedAny = true;
-      }
-      if (needsPushBack) {
-        pushToSupabase(STORAGE_KEYS.CLIENTES, merged);
+        if (changed) {
+          localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(merged));
+          updatedAny = true;
+          pushToSupabase(STORAGE_KEYS.CLIENTES, merged);
+        }
       }
     }
 
@@ -796,6 +807,17 @@ export const apiStore = {
       `O cadastro do cliente ${target.nome} (CPF: ${target.cpf}) e todas as suas indicações/cupons foram permanentemente excluídos do sistema.`
     );
 
+    // 5. Delete explicitly from Supabase relational tables
+    const client = getSupabaseClient();
+    if (client) {
+      if (cleanCpf) {
+        client.from('clientes').delete().eq('cpf', target.cpf).then(() => {}, () => {});
+        client.from('indicacoes').delete().eq('cliente_cpf', target.cpf).then(() => {}, () => {});
+        client.from('cupons').delete().eq('cliente_cpf', target.cpf).then(() => {}, () => {});
+      }
+      client.from('clientes').delete().eq('id', clienteId).then(() => {}, () => {});
+    }
+
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('indica_data_updated'));
     }
@@ -819,6 +841,13 @@ export const apiStore = {
       'Indicação Excluída',
       `A indicação de ${target.nomeIndicado} (Cliente: ${target.clienteNome || 'N/I'}) foi excluída do sistema.`
     );
+
+    // Delete explicitly from Supabase relational tables
+    const client = getSupabaseClient();
+    if (client) {
+      client.from('indicacoes').delete().eq('id', indicacaoId).then(() => {}, () => {});
+      client.from('cupons').delete().eq('indicacao_id', indicacaoId).then(() => {}, () => {});
+    }
   },
 
   getIndicacoes: (): Indicacao[] => getStoreData<Indicacao[]>(STORAGE_KEYS.INDICACOES),
@@ -1021,6 +1050,11 @@ export const apiStore = {
     const filtered = usuarios.filter((u) => u.id !== id);
     setStoreData(STORAGE_KEYS.USUARIOS, filtered);
     apiStore.addLog(executorNome, 'Exclusão de Usuário', `Usuário ${target.nome} (${target.email}) foi excluído do sistema.`);
+
+    const client = getSupabaseClient();
+    if (client) {
+      client.from('usuarios').delete().eq('id', id).then(() => {}, () => {});
+    }
   },
   resetSenhaUsuario: (id: string, novaSenha: string, executorNome = 'Super Admin'): void => {
     const usuarios = apiStore.getUsuarios();
@@ -1071,6 +1105,13 @@ export const apiStore = {
       criadoEm: new Date().toISOString(),
     };
     setStoreData(STORAGE_KEYS.LOGS, [logInicial]);
+
+    const client = getSupabaseClient();
+    if (client) {
+      client.from('clientes').delete().neq('id', '___none___').then(() => {}, () => {});
+      client.from('indicacoes').delete().neq('id', '___none___').then(() => {}, () => {});
+      client.from('cupons').delete().neq('id', '___none___').then(() => {}, () => {});
+    }
   },
 
   restaurarBackup: (backupJsonStr: string) => {
@@ -1126,6 +1167,11 @@ export const apiStore = {
     const filtered = tipos.filter((t) => t.id !== id);
     setStoreData(STORAGE_KEYS.TIPOS_ACAO, filtered);
     apiStore.addLog('Super Admin', 'Exclusão de Tipo de Ação', `Tipo de ação '${target.nome}' excluído.`);
+
+    const client = getSupabaseClient();
+    if (client) {
+      client.from('tipos_acao').delete().eq('id', id).then(() => {}, () => {});
+    }
   },
   toggleTipoAcaoAtivo: (id: string): void => {
     const tipos = apiStore.getTiposAcao();
