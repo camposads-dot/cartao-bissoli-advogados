@@ -71,9 +71,11 @@ const defaultConfig: ConfiguracaoSistema = {
   permitirAutoCadastroCliente: true,
 };
 
-// INITIALIZE LOCAL STORAGE (PRESERVE USER CREATED DATA PERFECTLY, NO INVENTED DATA)
+// INITIALIZE LOCAL STORAGE AND AUTO-START SUPABASE CLOUD SYNC
 export function initLocalStore() {
-  // Enforce one-time complete wipe of any legacy/cached test data for brand new clean start
+  if (typeof window === 'undefined') return;
+
+  // Enforce one-time clean start flag
   if (!localStorage.getItem('indica_cleaned_v3')) {
     localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify([]));
@@ -101,7 +103,6 @@ export function initLocalStore() {
   if (!localStorage.getItem(STORAGE_KEYS.USUARIOS)) {
     localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(defaultUsuarios));
   } else {
-    // Ensure Super Admin user exists
     const currentUsers: UsuarioInterno[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.USUARIOS) || '[]');
     const hasSuperAdmin = currentUsers.some(
       (u) => u.email.toLowerCase() === 'elnatacampos@outlook.com' || u.perfil === 'super_admin' || u.perfil === 'SUPER_ADMIN'
@@ -138,6 +139,150 @@ if (bc) {
   };
 }
 
+// SUPABASE CLOUD SYNC ENGINE (Synchronizes Mobile and Desktop in Real-Time)
+let isSyncingFromSupabase = false;
+
+export async function pushToSupabase(key: string, data: any): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    // 1. Unified Key-Value Store Sync
+    try {
+      await supabase.from('app_store_sync').upsert(
+        {
+          key,
+          value: data,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+    } catch {}
+
+    // 2. Relational Table Sync
+    if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
+      for (const c of data) {
+        if (c.cpf) {
+          try {
+            await supabase.from('clientes').upsert(
+              {
+                nome: c.nome,
+                cpf: c.cpf,
+                telefone: c.telefone || '(00) 00000-0000',
+                email: c.email || '',
+              },
+              { onConflict: 'cpf' }
+            );
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    // Graceful fallback if tables or permissions are restricted
+  }
+}
+
+export async function pullFromSupabase(): Promise<void> {
+  if (typeof window === 'undefined' || isSyncingFromSupabase) return;
+  isSyncingFromSupabase = true;
+  try {
+    let updatedAny = false;
+
+    // 1. Pull from app_store_sync table
+    const { data: syncRows, error: syncErr } = await supabase
+      .from('app_store_sync')
+      .select('*');
+
+    if (!syncErr && syncRows && syncRows.length > 0) {
+      for (const row of syncRows) {
+        if (row.key && row.value) {
+          const currentLocal = localStorage.getItem(row.key);
+          const remoteStr = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
+          if (currentLocal !== remoteStr) {
+            localStorage.setItem(row.key, remoteStr);
+            updatedAny = true;
+          }
+        }
+      }
+    }
+
+    // 2. Pull from relational public.clientes table
+    const { data: dbClientes, error: cliErr } = await supabase
+      .from('clientes')
+      .select('*');
+
+    if (!cliErr && dbClientes && dbClientes.length > 0) {
+      const currentClientes: Cliente[] = JSON.parse(localStorage.getItem(STORAGE_KEYS.CLIENTES) || '[]');
+      let cliChanged = false;
+
+      for (const row of dbClientes) {
+        const cleanCpf = (row.cpf || '').replace(/\D/g, '');
+        if (!cleanCpf) continue;
+
+        const idx = currentClientes.findIndex((c) => c.cpf.replace(/\D/g, '') === cleanCpf);
+        if (idx === -1) {
+          currentClientes.push({
+            id: row.id || 'c_' + Math.random().toString(36).substring(2, 9),
+            nome: row.nome || 'Cliente',
+            cpf: row.cpf,
+            telefone: row.telefone || '(00) 00000-0000',
+            email: row.email || '',
+            criadoEm: row.created_at || new Date().toISOString(),
+          });
+          cliChanged = true;
+        } else {
+          let rowUpdated = false;
+          if (row.nome && currentClientes[idx].nome !== row.nome && row.nome !== 'Cliente Não Identificado') {
+            currentClientes[idx].nome = row.nome;
+            rowUpdated = true;
+          }
+          if (row.telefone && currentClientes[idx].telefone !== row.telefone && row.telefone !== '(00) 00000-0000') {
+            currentClientes[idx].telefone = row.telefone;
+            rowUpdated = true;
+          }
+          if (row.email && currentClientes[idx].email !== row.email) {
+            currentClientes[idx].email = row.email;
+            rowUpdated = true;
+          }
+          if (rowUpdated) cliChanged = true;
+        }
+      }
+
+      if (cliChanged) {
+        localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify(currentClientes));
+        updatedAny = true;
+      }
+    }
+
+    if (updatedAny) {
+      window.dispatchEvent(new CustomEvent('indica_data_updated'));
+    }
+  } catch (err) {
+    // Offline / error silent catch
+  } finally {
+    isSyncingFromSupabase = false;
+  }
+}
+
+// Start Supabase real-time cloud background sync
+if (typeof window !== 'undefined') {
+  initLocalStore();
+  pullFromSupabase();
+
+  // Background cloud polling interval (runs every 3 seconds)
+  setInterval(() => {
+    pullFromSupabase();
+  }, 3000);
+
+  // Realtime Supabase channel listener
+  try {
+    supabase
+      .channel('public:db-sync')
+      .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+        pullFromSupabase();
+      })
+      .subscribe();
+  } catch {}
+}
+
 // STORAGE READ/WRITE HELPERS
 export function getStoreData<T>(key: string): T {
   initLocalStore();
@@ -155,6 +300,8 @@ export function setStoreData<T>(key: string, data: T): void {
       } catch {}
     }
   }
+  // Fire-and-forget push to Supabase Cloud
+  pushToSupabase(key, data);
 }
 
 // DATA MANAGEMENT API

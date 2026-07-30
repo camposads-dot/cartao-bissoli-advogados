@@ -87,14 +87,23 @@ CREATE TABLE IF NOT EXISTS public.cupons (
     observacao_abate TEXT
 );
 
+-- TABELA DE SINCRONIZAÇÃO EM NUVEM (MOBILE + DESKTOP PAINEL)
+CREATE TABLE IF NOT EXISTS public.app_store_sync (
+    key VARCHAR(100) PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ROW LEVEL SECURITY
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indicacoes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cupons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_store_sync ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Acesso Livre Clientes" ON public.clientes FOR ALL USING (true);
 CREATE POLICY "Acesso Livre Indicacoes" ON public.indicacoes FOR ALL USING (true);
-CREATE POLICY "Acesso Livre Cupons" ON public.cupons FOR ALL USING (true);`;
+CREATE POLICY "Acesso Livre Cupons" ON public.cupons FOR ALL USING (true);
+CREATE POLICY "Acesso Livre App Store Sync" ON public.app_store_sync FOR ALL USING (true);`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(sqlCode);
