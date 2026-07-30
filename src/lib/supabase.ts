@@ -184,6 +184,53 @@ if (bc) {
   };
 }
 
+// CENTRAL EXPRESS SERVER SYNC ENGINE (Synchronizes Mobile and Desktop in Real-Time instantly)
+let isSyncingFromServer = false;
+
+export async function pushToServer(key: string, data: any): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch('/api/sync/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value: data, updatedAt: Date.now() }),
+    });
+  } catch (err) {
+    // Offline / silent fallback
+  }
+}
+
+export async function pullFromServer(): Promise<void> {
+  if (typeof window === 'undefined' || isSyncingFromServer) return;
+  isSyncingFromServer = true;
+  try {
+    const res = await fetch('/api/sync/pull');
+    if (res.ok) {
+      const { store } = await res.json();
+      if (store) {
+        let updatedAny = false;
+        for (const [key, item] of Object.entries<any>(store)) {
+          if (item && item.value !== undefined) {
+            const currentLocal = localStorage.getItem(key);
+            const remoteStr = typeof item.value === 'string' ? item.value : JSON.stringify(item.value);
+            if (currentLocal !== remoteStr) {
+              localStorage.setItem(key, remoteStr);
+              updatedAny = true;
+            }
+          }
+        }
+        if (updatedAny) {
+          window.dispatchEvent(new CustomEvent('indica_data_updated'));
+        }
+      }
+    }
+  } catch (err) {
+    // Offline / silent fallback
+  } finally {
+    isSyncingFromServer = false;
+  }
+}
+
 // SUPABASE CLOUD SYNC ENGINE (Synchronizes Mobile and Desktop in Real-Time)
 let isSyncingFromSupabase = false;
 
@@ -211,15 +258,17 @@ export async function pushToSupabase(key: string, data: any): Promise<void> {
     if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
       for (const c of data) {
         if (c.cpf) {
-          await client.from('clientes').upsert(
-            {
-              nome: c.nome,
-              cpf: c.cpf,
-              telefone: c.telefone || '(00) 00000-0000',
-              email: c.email || '',
-            },
-            { onConflict: 'cpf' }
-          ).catch(() => {});
+          try {
+            await client.from('clientes').upsert(
+              {
+                nome: c.nome,
+                cpf: c.cpf,
+                telefone: c.telefone || '(00) 00000-0000',
+                email: c.email || '',
+              },
+              { onConflict: 'cpf' }
+            );
+          } catch {}
         }
       }
     }
@@ -316,15 +365,37 @@ export async function pullFromSupabase(): Promise<void> {
   }
 }
 
-// Start Supabase real-time cloud background sync
+// Start real-time background cloud & server sync
 if (typeof window !== 'undefined') {
   initLocalStore();
+  pullFromServer();
   pullFromSupabase();
 
-  // Background cloud polling interval (runs every 3 seconds)
+  // Background polling intervals (runs every 2 seconds for server and 3 seconds for Supabase)
   setInterval(() => {
+    pullFromServer();
     pullFromSupabase();
-  }, 3000);
+  }, 2000);
+
+  // SSE Stream listener for instant server pushes (<1 second real-time updates)
+  try {
+    const sse = new EventSource('/api/sync/stream');
+    sse.onmessage = (e) => {
+      if (e.data) {
+        try {
+          const { key, value } = JSON.parse(e.data);
+          if (key && value !== undefined) {
+            const currentLocal = localStorage.getItem(key);
+            const remoteStr = typeof value === 'string' ? value : JSON.stringify(value);
+            if (currentLocal !== remoteStr) {
+              localStorage.setItem(key, remoteStr);
+              window.dispatchEvent(new CustomEvent('indica_data_updated', { detail: { key } }));
+            }
+          }
+        } catch {}
+      }
+    };
+  } catch {}
 
   // Realtime Supabase channel listener
   try {
@@ -354,7 +425,8 @@ export function setStoreData<T>(key: string, data: T): void {
       } catch {}
     }
   }
-  // Fire-and-forget push to Supabase Cloud
+  // Dual Push: Push to central server API + Push to Supabase Cloud
+  pushToServer(key, data);
   pushToSupabase(key, data);
 }
 
