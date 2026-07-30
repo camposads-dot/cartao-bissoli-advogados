@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { apiStore } from '../lib/supabase';
+import { apiStore, getSupabaseStatus, SupabaseStatusState } from '../lib/supabase';
 import {
   Building2,
   Users,
@@ -24,6 +24,7 @@ import {
   UserPlus,
   ArrowRight,
   X,
+  Cloud,
 } from 'lucide-react';
 import { PerfilCodigo } from '../types';
 
@@ -63,15 +64,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const [lastSeenLogId, setLastSeenLogId] = useState<string | null>(null);
 
+  const [supaStatus, setSupaStatus] = useState<SupabaseStatusState>(getSupabaseStatus());
+
   // Live real-time update listener & poller
   useEffect(() => {
     const trigger = () => setRefreshTick((prev) => prev + 1);
+    const handleSupaStatus = () => setSupaStatus(getSupabaseStatus());
     window.addEventListener('indica_data_updated', trigger);
     window.addEventListener('storage', trigger);
+    window.addEventListener('supabase_status_changed', handleSupaStatus);
     const timer = setInterval(trigger, 2000);
     return () => {
       window.removeEventListener('indica_data_updated', trigger);
       window.removeEventListener('storage', trigger);
+      window.removeEventListener('supabase_status_changed', handleSupaStatus);
       clearInterval(timer);
     };
   }, []);
@@ -282,8 +288,33 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
 
-          {/* RIGHT ACTIONS: NOTIFICATIONS, THEME TOGGLE & LOGOUT */}
+          {/* RIGHT ACTIONS: SUPABASE CLOUD BADGE, NOTIFICATIONS, THEME TOGGLE & LOGOUT */}
           <div className="flex items-center space-x-2 relative">
+            {/* SUPABASE CLOUD SYNC STATUS BUTTON */}
+            <button
+              onClick={onOpenSqlViewer}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all cursor-pointer ${
+                supaStatus.connected
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20 animate-pulse'
+              }`}
+              title={
+                supaStatus.connected
+                  ? 'Supabase Cloud: Conectado & Sincronizando Mobile e Desktop'
+                  : 'Atenção: Supabase Não Conectado. Clique para configurar e sincronizar.'
+              }
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  supaStatus.connected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                }`}
+              ></span>
+              <Cloud className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline font-bold">
+                {supaStatus.connected ? 'Nuvem OK' : 'Config. Supabase'}
+              </span>
+            </button>
+
             {/* NOTIFICATION BELL BUTTON */}
             <div className="relative">
               <button

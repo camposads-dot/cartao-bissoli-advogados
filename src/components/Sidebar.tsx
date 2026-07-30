@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { apiStore } from '../lib/supabase';
+import { apiStore, getSupabaseStatus, SupabaseStatusState } from '../lib/supabase';
 import {
   Briefcase,
   DollarSign,
@@ -21,6 +21,8 @@ import {
   Building2,
   TrendingUp,
   Contact,
+  CloudCheck,
+  CloudOff,
 } from 'lucide-react';
 import { PerfilCodigo } from '../types';
 
@@ -40,16 +42,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { theme, toggleTheme } = useTheme();
   const auth = useAuth();
   const [, setRefreshTick] = useState(0);
+  const [supaStatus, setSupaStatus] = useState<SupabaseStatusState>(getSupabaseStatus());
 
   // Live updates listener & poller
   useEffect(() => {
     const trigger = () => setRefreshTick((prev) => prev + 1);
+    const handleSupaStatus = () => setSupaStatus(getSupabaseStatus());
     window.addEventListener('indica_data_updated', trigger);
     window.addEventListener('storage', trigger);
+    window.addEventListener('supabase_status_changed', handleSupaStatus);
     const timer = setInterval(trigger, 2000);
     return () => {
       window.removeEventListener('indica_data_updated', trigger);
       window.removeEventListener('storage', trigger);
+      window.removeEventListener('supabase_status_changed', handleSupaStatus);
       clearInterval(timer);
     };
   }, []);
@@ -225,13 +231,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={onOpenSqlViewer}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent hover:border-slate-700 transition-all cursor-pointer group"
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer group ${
+                  supaStatus.connected
+                    ? 'text-slate-300 hover:text-white hover:bg-slate-800/80 border-transparent hover:border-slate-700'
+                    : 'text-amber-300 bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20'
+                }`}
               >
                 <div className="flex items-center space-x-2.5">
-                  <Database className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Script SQL Supabase</span>
+                  <Database className={`w-4 h-4 shrink-0 ${supaStatus.connected ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} />
+                  <span>Sincronização Supabase</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                <div className="flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-full ${supaStatus.connected ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-all" />
+                </div>
               </button>
             </div>
           </div>

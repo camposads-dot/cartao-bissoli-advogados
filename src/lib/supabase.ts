@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
   Cliente,
   Cupom,
@@ -9,15 +9,76 @@ import {
   ConfiguracaoSistema,
 } from '../types';
 
-// Supabase Credentials from prompt or environment
-const SUPABASE_URL =
+// Supabase Credentials from prompt or environment, with localStorage overrides
+const DEFAULT_SUPABASE_URL =
   import.meta.env.VITE_SUPABASE_URL ||
   'https://smprrzcgxnyvmcbaaxmv.supabase.co';
-const SUPABASE_ANON_KEY =
+const DEFAULT_SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   'sb_publishable_V_E083P72EW3Cg8-GkWYBw_DbC5_N3U';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export function getSupabaseConfig(): { url: string; key: string } {
+  if (typeof window !== 'undefined') {
+    const customUrl = localStorage.getItem('indica_custom_supabase_url');
+    const customKey = localStorage.getItem('indica_custom_supabase_key');
+    if (customUrl && customKey) {
+      return { url: customUrl.trim(), key: customKey.trim() };
+    }
+  }
+  return { url: DEFAULT_SUPABASE_URL, key: DEFAULT_SUPABASE_ANON_KEY };
+}
+
+let currentSupabaseClient: SupabaseClient | null = null;
+
+export function getSupabaseClient(): SupabaseClient {
+  if (!currentSupabaseClient) {
+    const config = getSupabaseConfig();
+    currentSupabaseClient = createClient(config.url, config.key);
+  }
+  return currentSupabaseClient;
+}
+
+export const supabase = getSupabaseClient();
+
+export function saveSupabaseConfig(url: string, key: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('indica_custom_supabase_url', url.trim());
+  localStorage.setItem('indica_custom_supabase_key', key.trim());
+  const newConfig = getSupabaseConfig();
+  currentSupabaseClient = createClient(newConfig.url, newConfig.key);
+  pullFromSupabase();
+}
+
+// SUPABASE CONNECTION STATUS STATE
+export interface SupabaseStatusState {
+  connected: boolean;
+  lastCheck: string | null;
+  error: string | null;
+  url: string;
+}
+
+let supabaseStatusState: SupabaseStatusState = {
+  connected: false,
+  lastCheck: null,
+  error: null,
+  url: DEFAULT_SUPABASE_URL,
+};
+
+export function getSupabaseStatus(): SupabaseStatusState {
+  return { ...supabaseStatusState, url: getSupabaseConfig().url };
+}
+
+function updateSupabaseStatus(connected: boolean, errorMsg: string | null) {
+  supabaseStatusState = {
+    connected,
+    lastCheck: new Date().toLocaleTimeString(),
+    error: errorMsg,
+    url: getSupabaseConfig().url,
+  };
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('supabase_status_changed', { detail: supabaseStatusState }));
+  }
+}
 
 // LOCAL STORAGE HYBRID ENGINE (Guarantees instant preview functionality)
 const STORAGE_KEYS = {
@@ -58,11 +119,8 @@ const defaultUsuarios: UsuarioInterno[] = [
 ];
 
 const defaultClientes: Cliente[] = [];
-
 const defaultIndicacoes: Indicacao[] = [];
-
 const defaultCupons: Cupom[] = [];
-
 const defaultLogs: LogSistema[] = [];
 
 const defaultConfig: ConfiguracaoSistema = {
@@ -75,31 +133,18 @@ const defaultConfig: ConfiguracaoSistema = {
 export function initLocalStore() {
   if (typeof window === 'undefined') return;
 
-  // Enforce one-time clean start flag
-  if (!localStorage.getItem('indica_cleaned_v3')) {
-    localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify([]));
-    localStorage.removeItem('indica_active_cliente');
-    localStorage.setItem('indica_cleaned_v3', 'true');
-  }
-
   if (!localStorage.getItem(STORAGE_KEYS.CLIENTES)) {
     localStorage.setItem(STORAGE_KEYS.CLIENTES, JSON.stringify([]));
   }
-
   if (!localStorage.getItem(STORAGE_KEYS.INDICACOES)) {
     localStorage.setItem(STORAGE_KEYS.INDICACOES, JSON.stringify([]));
   }
-
   if (!localStorage.getItem(STORAGE_KEYS.CUPONS)) {
     localStorage.setItem(STORAGE_KEYS.CUPONS, JSON.stringify([]));
   }
-
   if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
     localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify([]));
   }
-
   if (!localStorage.getItem(STORAGE_KEYS.USUARIOS)) {
     localStorage.setItem(STORAGE_KEYS.USUARIOS, JSON.stringify(defaultUsuarios));
   } else {
@@ -144,68 +189,77 @@ let isSyncingFromSupabase = false;
 
 export async function pushToSupabase(key: string, data: any): Promise<void> {
   if (typeof window === 'undefined') return;
+  const client = getSupabaseClient();
   try {
     // 1. Unified Key-Value Store Sync
-    try {
-      await supabase.from('app_store_sync').upsert(
-        {
-          key,
-          value: data,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'key' }
-      );
-    } catch {}
+    const { error: syncError } = await client.from('app_store_sync').upsert(
+      {
+        key,
+        value: data,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'key' }
+    );
+
+    if (syncError) {
+      updateSupabaseStatus(false, syncError.message);
+    } else {
+      updateSupabaseStatus(true, null);
+    }
 
     // 2. Relational Table Sync
     if (key === STORAGE_KEYS.CLIENTES && Array.isArray(data)) {
       for (const c of data) {
         if (c.cpf) {
-          try {
-            await supabase.from('clientes').upsert(
-              {
-                nome: c.nome,
-                cpf: c.cpf,
-                telefone: c.telefone || '(00) 00000-0000',
-                email: c.email || '',
-              },
-              { onConflict: 'cpf' }
-            );
-          } catch {}
+          await client.from('clientes').upsert(
+            {
+              nome: c.nome,
+              cpf: c.cpf,
+              telefone: c.telefone || '(00) 00000-0000',
+              email: c.email || '',
+            },
+            { onConflict: 'cpf' }
+          ).catch(() => {});
         }
       }
     }
-  } catch (err) {
-    // Graceful fallback if tables or permissions are restricted
+  } catch (err: any) {
+    updateSupabaseStatus(false, err?.message || 'Falha ao salvar no Supabase');
   }
 }
 
 export async function pullFromSupabase(): Promise<void> {
   if (typeof window === 'undefined' || isSyncingFromSupabase) return;
   isSyncingFromSupabase = true;
+  const client = getSupabaseClient();
   try {
     let updatedAny = false;
 
     // 1. Pull from app_store_sync table
-    const { data: syncRows, error: syncErr } = await supabase
+    const { data: syncRows, error: syncErr } = await client
       .from('app_store_sync')
       .select('*');
 
-    if (!syncErr && syncRows && syncRows.length > 0) {
-      for (const row of syncRows) {
-        if (row.key && row.value) {
-          const currentLocal = localStorage.getItem(row.key);
-          const remoteStr = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
-          if (currentLocal !== remoteStr) {
-            localStorage.setItem(row.key, remoteStr);
-            updatedAny = true;
+    if (syncErr) {
+      updateSupabaseStatus(false, syncErr.message);
+    } else {
+      updateSupabaseStatus(true, null);
+      if (syncRows && syncRows.length > 0) {
+        for (const row of syncRows) {
+          if (row.key && row.value !== undefined) {
+            const currentLocal = localStorage.getItem(row.key);
+            const remoteStr = typeof row.value === 'string' ? row.value : JSON.stringify(row.value);
+            if (currentLocal !== remoteStr) {
+              localStorage.setItem(row.key, remoteStr);
+              updatedAny = true;
+            }
           }
         }
       }
     }
 
     // 2. Pull from relational public.clientes table
-    const { data: dbClientes, error: cliErr } = await supabase
+    const { data: dbClientes, error: cliErr } = await client
       .from('clientes')
       .select('*');
 
@@ -255,8 +309,8 @@ export async function pullFromSupabase(): Promise<void> {
     if (updatedAny) {
       window.dispatchEvent(new CustomEvent('indica_data_updated'));
     }
-  } catch (err) {
-    // Offline / error silent catch
+  } catch (err: any) {
+    updateSupabaseStatus(false, err?.message || 'Erro de conexão com Supabase');
   } finally {
     isSyncingFromSupabase = false;
   }
@@ -274,7 +328,7 @@ if (typeof window !== 'undefined') {
 
   // Realtime Supabase channel listener
   try {
-    supabase
+    getSupabaseClient()
       .channel('public:db-sync')
       .on('postgres_changes', { event: '*', schema: 'public' }, () => {
         pullFromSupabase();
